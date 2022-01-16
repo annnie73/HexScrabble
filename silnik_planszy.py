@@ -241,6 +241,8 @@ def ruch_gracza_realnego():
 					else:
 						pass #dodać polskie znaki
 
+					#komentarz testowy
+
 
 
 
