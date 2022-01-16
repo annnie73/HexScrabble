@@ -346,6 +346,10 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 					continue
 
 			if czy_wymiana != 'tak' and czy_wymiana != 't':
+				dostawka = silnik_planszy.ruch_gracza_realnego()
+				if wstaw(plansza, dostawka):
+					#wynik
+
 				count = 1
 				while count <= 6:
 					słowo_gracza = input('Podaj słowo, które chcesz zagrać: ')

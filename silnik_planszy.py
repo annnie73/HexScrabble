@@ -1,4 +1,5 @@
 from operator import truediv
+from termios import OFDEL
 import pygame
 import math
 import copy
@@ -115,11 +116,86 @@ def rysuj_planszę():
 rysuj_planszę()
 
 aktualny_heksagon = None
+pole = None
 Dopisuje_dostawke = False
 dostawka = []
 
+def wstaw_literę(lit):
+	global aktualny_heksagon, pole, Dopisuje_dostawke, dostawka
+
+	litera = (czcionka.render(lit, True, (116, 82, 74)))
+	litera_rect = litera.get_rect(center = aktualny_heksagon.center)
+	screen.blit(litera, litera_rect)
+	dostawka.append((lit, pole))
+
+
+def pobierz_literkę(adres_literki: int):
+	match adres_literki:
+		case pygame.K_a:
+			return 'A'
+		case pygame.K_b:
+			return 'B'
+		case pygame.K_c:
+			return 'C'
+		case pygame.K_d:
+			return 'D'
+		case pygame.K_e:
+			return 'E'
+		case pygame.K_f:
+			return 'F'
+		case pygame.K_g:
+			return 'G'
+		case pygame.K_h:
+			return 'H'
+		case pygame.K_i:
+			return 'I'
+		case pygame.K_j:
+			return 'J'
+		case pygame.K_k:
+			return 'K'
+		case pygame.K_l:
+			return 'L'
+		case pygame.K_m:
+			return 'M'
+		case pygame.K_n:
+			return 'N'
+		case pygame.K_o:
+			return 'O'
+		case pygame.K_p:
+			return 'P'
+		case pygame.K_q:
+			return 'Q'
+		case pygame.K_r:
+			return 'R'
+		case pygame.K_s:
+			return 'S'
+		case pygame.K_t:
+			return 'T'
+		case pygame.K_u:
+			return 'U'
+		case pygame.K_v:
+			return 'V'
+		case pygame.K_w:
+			return 'W'
+		case pygame.K_x:
+			return 'X'
+		case pygame.K_y:
+			return 'Y'
+		case pygame.K_z:
+			return 'Z'
+		case _:
+			return False
+
+def aktualizuj_liste_mozliwych_pol(listamozliwychpol):
+	global pole
+	listamozliwychpol.remove(pole)
+
 def ruch_gracza_realnego():
 	#zwraca dostawkę na podstawie liter wpisanych przez gracza
+
+	global aktualny_heksagon, pole, Dopisuje_dostawke, dostawka
+	listamozliwychpol = [(x,y) for (x,y) in plansza if plansza[(x,y)][0] == ' ']
+
 	while True:
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -138,14 +214,12 @@ def ruch_gracza_realnego():
 					if heksagon_rect.collidepoint(pozycja_myszki):
 						#kiedy użytkownik klika w następny sześciokąt, poprzedni przestaje się podświetlać
 						if aktualny_heksagon:
-							heksagon_1_rect.update(aktualny_heksagon)
-							screen.blit(heksagon, heksagon_1_rect)
-							"""
 							heksagon_3_rect.update(aktualny_heksagon)
 							screen.blit(heksagon_3, heksagon_3_rect)
-							"""
+						
 						#podświetlamy ostatni kliknięty przez użytkownika heksagon
 						aktualny_heksagon = heksagon_rect
+						pole = (x,y)
 						heksagon_2_rect.update(aktualny_heksagon)
 						#heksagon_2_rect = heksagon_2.get_rect(left = aktualny_heksagon.left, top = aktualny_heksagon.top)
 						screen.blit(heksagon_2, heksagon_2_rect)
@@ -158,11 +232,14 @@ def ruch_gracza_realnego():
 						kopia_planszy = copy.deepcopy(plansza)
 						Dopisuje_dostawke = True
 
-					if event.key == pygame.K_k:
-						K = (czcionka.render('K', True, (116, 82, 74)))
-						K_rect = K.get_rect(center = aktualny_heksagon.center)
-						screen.blit(K, K_rect)
-						#dostawka += 
+					if pobierz_literkę(event.key): #na odwrót - najpierw sprawdza czy polski znak
+						if pole in listamozliwychpol:
+							lit = pobierz_literkę(event.key)
+							wstaw_literę(lit)
+							aktualizuj_liste_mozliwych_pol(listamozliwychpol)
+					
+					else:
+						pass #dodać polskie znaki
 
 
 
@@ -171,8 +248,8 @@ def ruch_gracza_realnego():
 
 				if event.key == pygame.K_UP:
 					if aktualny_heksagon:
-						heksagon_1_rect.update(aktualny_heksagon)
-						screen.blit(heksagon, heksagon_1_rect)
+						heksagon_3_rect.update(aktualny_heksagon)
+						screen.blit(heksagon_3, heksagon_3_rect)
 
 						for x,y in plansza:
 							if aktualny_heksagon in plansza[x,y]:
@@ -185,8 +262,8 @@ def ruch_gracza_realnego():
 
 				if event.key == pygame.K_DOWN:
 					if aktualny_heksagon:
-						heksagon_1_rect.update(aktualny_heksagon)
-						screen.blit(heksagon, heksagon_1_rect)
+						heksagon_3_rect.update(aktualny_heksagon)
+						screen.blit(heksagon_3, heksagon_3_rect)
 
 						for x,y in plansza:
 							if aktualny_heksagon in plansza[x,y]:
@@ -199,8 +276,8 @@ def ruch_gracza_realnego():
 						
 				if event.key == pygame.K_RIGHT:
 					if aktualny_heksagon:
-						heksagon_1_rect.update(aktualny_heksagon)
-						screen.blit(heksagon, heksagon_1_rect)
+						heksagon_3_rect.update(aktualny_heksagon)
+						screen.blit(heksagon_3, heksagon_3_rect)
 
 						for x,y in plansza:
 							if aktualny_heksagon in plansza[x,y]:
@@ -213,8 +290,8 @@ def ruch_gracza_realnego():
 						
 				if event.key == pygame.K_LEFT:
 					if aktualny_heksagon:
-						heksagon_1_rect.update(aktualny_heksagon)
-						screen.blit(heksagon, heksagon_1_rect)
+						heksagon_3_rect.update(aktualny_heksagon)
+						screen.blit(heksagon_3, heksagon_3_rect)
 
 						for x,y in plansza:
 							if aktualny_heksagon in plansza[x,y]:
@@ -225,10 +302,10 @@ def ruch_gracza_realnego():
 						heksagon_2_rect.update(aktualny_heksagon)
 						screen.blit(heksagon_2, heksagon_2_rect)
 
-				if event.key == pygame.K_KP_ENTER:
+				if event.key == pygame.K_RETURN:
 					Dopisuje_dostawke = False
-						
-			#trzeba sprawdzić literki wszystkie hejo
+					if dostawka:
+						return dostawka
 
 			#kiedy klika enter, sprawdzamy czy słowo jest poprawne i heja
 
@@ -238,3 +315,6 @@ def ruch_gracza_realnego():
 
 		pygame.display.update()
 		zegar.tick(60)
+
+
+print(ruch_gracza_realnego())
