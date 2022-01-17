@@ -232,22 +232,36 @@ def ruch_gracza_realnego():
 						kopia_planszy = copy.deepcopy(plansza)
 						Dopisuje_dostawke = True
 
-					if pobierz_literkę(event.key): #na odwrót - najpierw sprawdza czy polski znak
+					klawisze = pygame.key.get_pressed()
+					#sprawdzamy, czy uzytkownik chce wprowadzić polski znak
+					if klawisze[pygame.K_a] and klawisze[pygame.K_RALT]:
+						lit = 'Ą'
+					elif klawisze[pygame.K_c] and klawisze[pygame.K_RALT]:
+						lit = 'Ć'
+					elif klawisze[pygame.K_e] and klawisze[pygame.K_RALT]:
+						lit = 'Ę'
+					elif klawisze[pygame.K_l] and klawisze[pygame.K_RALT]:
+						lit = 'Ł'
+					elif klawisze[pygame.K_o] and klawisze[pygame.K_RALT]:
+						lit = 'Ó'
+					elif klawisze[pygame.K_s] and klawisze[pygame.K_RALT]:
+						lit = 'Ś'
+					elif klawisze[pygame.K_x] and klawisze[pygame.K_RALT]:
+						lit = 'Ź'
+					elif klawisze[pygame.K_z] and klawisze[pygame.K_RALT]:
+						lit = 'Ż'
+
+					#jeśli nie, sprawdzamy pozostałe litery
+					elif event.key == pobierz_literkę(event.key):
+						lit = pobierz_literkę(event.key)
+
+					if lit:
 						if pole in listamozliwychpol:
-							lit = pobierz_literkę(event.key)
 							wstaw_literę(lit)
 							aktualizuj_liste_mozliwych_pol(listamozliwychpol)
+							lit = None
 					
-					else:
-						pass #dodać polskie znaki
-
-					#komentarz testowy
-
-
-
-
-
-
+				#gracz może poruszać się po planszy używając strzałek
 				if event.key == pygame.K_UP:
 					if aktualny_heksagon:
 						heksagon_3_rect.update(aktualny_heksagon)
