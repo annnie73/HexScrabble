@@ -13,19 +13,26 @@ pygame.display.set_caption('Hex Scrabble')
 zegar = pygame.time.Clock()
 
 czcionka = pygame.font.Font('czcionki/Bitter-Regular.otf', 32)
-duża_czcionka = pygame.font.Font('czcionki/Bitter-Bold.otf', 38)
+czcionka_mała = pygame.font.Font('czcionki/Bitter-Regular.otf', 30)
+czcionka_średnia = pygame.font.Font('czcionki/Bitter-Bold.otf', 30)
+czcionka_duża = pygame.font.Font('czcionki/Bitter-Bold.otf', 38)
 
 tło = pygame.image.load('grafiki/wallpaper.jpeg')
 tło = pygame.transform.rotozoom(tło, 0, 1.2)
 screen.blit(tło, (0,0))
 
-nazwa = duża_czcionka.render('Hex Scrabble', True, (116, 82, 74))
+nazwa = czcionka_duża.render('Hex Scrabble', True, (116, 82, 74))
 screen.blit(nazwa, (1050, 50))
+
+runda = czcionka_średnia.render('Runda ', True, (102, 70, 62))
+screen.blit(runda, (900, 110))
+
+wyświetl_gracza = czcionka_mała.render('Tura gracza ', True, (102, 70, 62))
+screen.blit(wyświetl_gracza, (900, 150))
 """
-aktualny_gracz
 litery_gracza
 przycisk_wymiany
-nr_rundy
+
 wynik_gracza
 """
 heksagon = pygame.image.load('grafiki/hexagon1.png')
@@ -119,6 +126,10 @@ aktualny_heksagon = None
 pole = None
 Dopisuje_dostawke = False
 dostawka = []
+lit = None
+
+
+
 
 def wstaw_literę(lit):
 	global aktualny_heksagon, pole, Dopisuje_dostawke, dostawka
@@ -184,7 +195,7 @@ def pobierz_literkę(adres_literki: int):
 		case pygame.K_z:
 			return 'Z'
 		case _:
-			return False
+			return None
 
 def aktualizuj_liste_mozliwych_pol(listamozliwychpol):
 	global pole
@@ -193,7 +204,7 @@ def aktualizuj_liste_mozliwych_pol(listamozliwychpol):
 def ruch_gracza_realnego():
 	#zwraca dostawkę na podstawie liter wpisanych przez gracza
 
-	global aktualny_heksagon, pole, Dopisuje_dostawke, dostawka
+	global aktualny_heksagon, pole, Dopisuje_dostawke, dostawka, lit
 	listamozliwychpol = [(x,y) for (x,y) in plansza if plansza[(x,y)][0] == ' ']
 
 	while True:
@@ -225,6 +236,7 @@ def ruch_gracza_realnego():
 						screen.blit(heksagon_2, heksagon_2_rect)
 
 			#gracz nie musi za każdym razem naciskać na sześciokąt, może poruszać się po planszy strzałkami
+
 			if event.type == pygame.KEYDOWN:
 				if aktualny_heksagon:
 
@@ -252,7 +264,7 @@ def ruch_gracza_realnego():
 						lit = 'Ż'
 
 					#jeśli nie, sprawdzamy pozostałe litery
-					elif event.key == pobierz_literkę(event.key):
+					elif pobierz_literkę(event.key): #event.key == pobierz_literkę(event.key):
 						lit = pobierz_literkę(event.key)
 
 					if lit:
