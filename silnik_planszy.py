@@ -139,15 +139,13 @@ rysuj_planszę()
 
 aktualny_heksagon = None
 pole = None
-Dopisuje_dostawke = False
+dopisuje_dostawkę = False
 dostawka = []
 lit = None
 
-
-
-
 def wstaw_literę(lit):
-	global aktualny_heksagon, pole, Dopisuje_dostawke, dostawka
+	#wstawia literę na planszę i przechowuje informacje o tworzonej przez gracza dostawce
+	global aktualny_heksagon, pole, dopisuje_dostawkę, dostawka
 
 	litera = (czcionka.render(lit, True, (116, 82, 74)))
 	litera_rect = litera.get_rect(center = aktualny_heksagon.center)
@@ -156,6 +154,7 @@ def wstaw_literę(lit):
 
 
 def pobierz_literkę(adres_literki: int):
+	#zwraca literę odpowiadającą odpowiedniemu przyciskowi na klawiaturze
 	match adres_literki:
 		case pygame.K_a:
 			return 'A'
@@ -213,13 +212,14 @@ def pobierz_literkę(adres_literki: int):
 			return None
 
 def aktualizuj_liste_mozliwych_pol(listamozliwychpol):
+	#uniemozliwia uzytkownikowi wpisanie litery dwa razy w tym samym polu
 	global pole
 	listamozliwychpol.remove(pole)
 
 def ruch_gracza_realnego():
-	#zwraca dostawkę na podstawie liter wpisanych przez gracza
+	#zwraca dostawkę na podstawie liter wpisanych przez gracza lub None, jeśli gracz wymienia litery
 
-	global aktualny_heksagon, pole, Dopisuje_dostawke, dostawka, lit
+	global aktualny_heksagon, pole, dopisuje_dostawkę, dostawka, lit
 	listamozliwychpol = [(x,y) for (x,y) in plansza if plansza[(x,y)][0] == ' ']
 
 	while True:
@@ -230,6 +230,15 @@ def ruch_gracza_realnego():
 
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				pozycja_myszki = pygame.mouse.get_pos()
+
+				#sprawdzamy czy uzytkownik chce wymienić litery
+				if przycisk_rect.collidepoint(pozycja_myszki):
+					return None
+
+
+
+
+
 				for x, y in plansza:
 					#identyfikujemy sześciokąt, na który kliknął użytkownik, żeby wpisać literę
 					heksagon_rect = plansza[x,y][1]
@@ -255,9 +264,9 @@ def ruch_gracza_realnego():
 			if event.type == pygame.KEYDOWN:
 				if aktualny_heksagon:
 
-					if not Dopisuje_dostawke:
+					if not dopisuje_dostawke:
 						kopia_planszy = copy.deepcopy(plansza)
-						Dopisuje_dostawke = True
+						dopisuje_dostawke = True
 
 					klawisze = pygame.key.get_pressed()
 					#sprawdzamy, czy uzytkownik chce wprowadzić polski znak
@@ -350,18 +359,9 @@ def ruch_gracza_realnego():
 
 				#kiedy uzytkownik naciska enter po wpisaniu słowa, kończymy działanie funkcji i zwracamy utworzoną przez niego dostawkę
 				if event.key == pygame.K_RETURN:
-					Dopisuje_dostawke = False
+					dopisuje_dostawkę = False
 					if dostawka:
 						return dostawka
 
-			#kiedy klika enter, sprawdzamy czy słowo jest poprawne i heja
-
-
-		
-
-
 		pygame.display.update()
 		zegar.tick(60)
-
-
-print(ruch_gracza_realnego())
