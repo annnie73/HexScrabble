@@ -13,6 +13,7 @@ zegar = pygame.time.Clock()
 czcionka = pygame.font.Font('czcionki/Bitter-Regular.otf', 32)
 czcionka_b_mała = pygame.font.Font('czcionki/Bitter-Regular.otf', 22)
 czcionka_mała = pygame.font.Font('czcionki/Bitter-Regular.otf', 30)
+czcionka_najmn = pygame.font.Font('czcionki/Bitter-Regular.otf', 30)
 czcionka_średnia = pygame.font.Font('czcionki/Bitter-Bold.otf', 30)
 czcionka_duża = pygame.font.Font('czcionki/Bitter-Bold.otf', 38)
 

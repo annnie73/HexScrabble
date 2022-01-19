@@ -79,7 +79,7 @@ def usuń_ze_zbioru(zbiór_gracza, litera):
 	#usuwa płytkę ze zbioru gracza, w momencie kiedy gracz ją zużywa lub wymienia
 	if płytka(litera) in zbiór_gracza:
 		zbiór_gracza.remove(płytka(litera))
-	else: raise Exception('W zbiorze gracza nie ma podanej litery. ')
+	else: raise Exception('W zbiorze gracza nie ma podanej litery: ' + str(litera) + '.')
 
 def uzupełnij_zbiór(zbiór_gracza):
 	#dodaje płytki do zbioru gracza, aby miał ich 7 (jeśli jest odpowiednia liczba płytek w woreczku)
@@ -108,23 +108,26 @@ def wyświetl_litery(aktualny_gracz):
 	x = 882
 	y = 253
 	for i in range(len(gracze[aktualny_gracz][1])):
-		płytka = gracze[aktualny_gracz][1][i][0]+'(' + str(gracze[aktualny_gracz][1][i][1]) + ')'
+		#krotka = gracze[aktualny_gracz][1][i]
+		płytka = gracze[aktualny_gracz][1][i][0] +'(' + str(gracze[aktualny_gracz][1][i][1]) + ')'
 		if i != len(gracze[aktualny_gracz][1]) - 1:
 			płytka_graf = sp.czcionka_mała.render((płytka + ', '), True, (102, 70, 62))
 		else: płytka_graf = sp.czcionka_mała.render(płytka, True, (102, 70, 62))
 		płytka_rect = płytka_graf.get_rect(topleft = (x,y))
-		słownik_płytek[płytka_graf] = płytka_rect
+		słownik_płytek[płytka] = [płytka_graf, płytka_rect]
 		screen.blit(płytka_graf, płytka_rect)
 		x += płytka_rect.width
 	return słownik_płytek
 
 def wymiana(aktualny_gracz):
 	słownik_płytek = wyświetl_litery(aktualny_gracz)
-	instrukcja = czcionka_mała.render('Kliknij myszką na litery, które chcesz wymienić, a następnie naciśnij ENTER', True, (102, 70, 62))
-	screen.blit(instrukcja, (880, 303))
+	instrukcja1 = sp.czcionka_b_mała.render('Kliknij myszką na litery, które chcesz wymienić,', True, (102, 70, 62))
+	instrukcja2 = sp.czcionka_b_mała.render('a następnie naciśnij ENTER', True, (102, 70, 62))
+	screen.blit(instrukcja1, (880, 303))
+	screen.blit(instrukcja2, (880, 330))
 
 	litery_do_wymiany = []
-
+	
 	while True:
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -136,7 +139,7 @@ def wymiana(aktualny_gracz):
 
 				for płytka in słownik_płytek:
 					#identyfikujemy sześciokąt, na który kliknął użytkownik, żeby wpisać literę
-					płytka_rect = słownik_płytek[płytka]
+					płytka_rect = słownik_płytek[płytka][1]
 
 					if płytka_rect.collidepoint(pozycja_myszki):
 						#kiedy użytkownik klika w literę, podświetlamy ją i dodajemy do liter do wymiany
@@ -152,22 +155,14 @@ def wymiana(aktualny_gracz):
 					uzupełnij_zbiór(gracze[aktualny_gracz][1])
 					sp.inicjalizacja_gry()
 					sp.rysuj_planszę()
-
-
-	#po kliknięciu enter:
-		#wymiana liter
-		#blitujemy tło, planszę
-		#blitujemy komunikat 'Twoje aktualne litery' + wymienione literki
-
-	""""
-	litery_do_wymiany = re.split(r', |; |,|;|\s', input('Które litery chcesz wymienić? '))
-	if not sprawdź_wymianę(litery_do_wymiany): wymiana()
-
-	for litera in litery_do_wymiany:
-		usuń_ze_zbioru(gracze[aktualny_gracz][1], litera)
-	uzupełnij_zbiór(gracze[aktualny_gracz][1])
-	print('\nLitery zostały wymienione. \nTwój aktualny zbiór liter to: ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
-	"""
+					napis2 = czcionka_mała.render('Twój aktualny zbiór liter:', True, (116, 82, 74))
+					screen.blit(napis2, (900, 210))
+					komunikat = sp.czcionka_b_mała.render('Litery zostały wymienione.', True, (102, 70, 62))
+					screen.blit(komunikat, (880, 303))
+					return True
+		pygame.display.update()
+		sp.zegar.tick(60)
+		
 def stwórz_dostawkę(słowo: str, pierwsza_współrzędna: tuple, kierunek: str):
 	#zwraca listę krotek w postaci (litera, współrzędne) w zależności od kierunku wpisywanego słowa
 	słowo = słowo.upper()
@@ -401,14 +396,21 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 			if aktualny_gracz <= len(args.nazwy_graczy_realnych) - 1: #zmienimy, zeby mogl byc najpierw komputer
 				sp.rysuj_planszę()
 				wyświetl_litery(aktualny_gracz)
-				sp.ruch_gracza_realnego(aktualny_gracz)
-				#dostawka = sp.ruch_gracza_realnego(aktualny_gracz)
 
 				if sp.ruch_gracza_realnego(aktualny_gracz):
 					if wstaw(plansza, sp.ruch_gracza_realnego(aktualny_gracz)):
 						sp.rysuj_planszę() 
 				else:
 					wymiana(aktualny_gracz)
+					screen.blit(numer, (988, 110))
+					screen.blit(imię, (1060, 150))
+					wyświetl_litery(aktualny_gracz)
+					stopwatch = pygame.time.get_ticks()
+					#jakoś inaczej trzeba to będzie rozegrać
+					while True:
+						stopwatch2 = pygame.time.get_ticks()
+						if stopwatch2 - stopwatch >= 2000:
+							break
 					
 					
 
