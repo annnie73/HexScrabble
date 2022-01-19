@@ -299,7 +299,7 @@ def ruch_gracza_realnego():
 								if (x, y+1) in plansza:
 									aktualny_heksagon = plansza[x,y+1][1]
 									break
-
+						pole = (x, y+1)
 						heksagon_2_rect.update(aktualny_heksagon)
 						screen.blit(heksagon_2, heksagon_2_rect)
 
@@ -313,7 +313,8 @@ def ruch_gracza_realnego():
 								if (x, y-1) in plansza:
 									aktualny_heksagon = plansza[x,y-1][1]
 									break
-
+						
+						pole = (x, y-1)
 						heksagon_2_rect.update(aktualny_heksagon)
 						screen.blit(heksagon_2, heksagon_2_rect)
 						
@@ -327,7 +328,8 @@ def ruch_gracza_realnego():
 								if (x+1, y) in plansza:
 									aktualny_heksagon = plansza[x+1,y][1]
 									break
-
+						
+						pole = (x+1, y)
 						heksagon_2_rect.update(aktualny_heksagon)
 						screen.blit(heksagon_2, heksagon_2_rect)
 						
@@ -341,10 +343,12 @@ def ruch_gracza_realnego():
 								if (x-1, y) in plansza:
 									aktualny_heksagon = plansza[x-1,y][1]
 									break
-
+						
+						pole = (x-1, y)
 						heksagon_2_rect.update(aktualny_heksagon)
 						screen.blit(heksagon_2, heksagon_2_rect)
 
+				#kiedy uzytkownik naciska enter po wpisaniu słowa, kończymy działanie funkcji i zwracamy utworzoną przez niego dostawkę
 				if event.key == pygame.K_RETURN:
 					Dopisuje_dostawke = False
 					if dostawka:
