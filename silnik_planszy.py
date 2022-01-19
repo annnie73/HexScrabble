@@ -5,7 +5,7 @@ import math
 import copy
 from sys import exit
 
-#inicjalizacja biblioteki pygame
+#inicjalizacja biblioteki pygame, czcionek i outline'u planszy
 pygame.init()
 screen = pygame.display.set_mode((1500, 800), pygame.RESIZABLE)
 #screen.fill((245, 222, 179))
@@ -13,6 +13,7 @@ pygame.display.set_caption('Hex Scrabble')
 zegar = pygame.time.Clock()
 
 czcionka = pygame.font.Font('czcionki/Bitter-Regular.otf', 32)
+czcionka_b_mała = pygame.font.Font('czcionki/Bitter-Regular.otf', 22)
 czcionka_mała = pygame.font.Font('czcionki/Bitter-Regular.otf', 30)
 czcionka_średnia = pygame.font.Font('czcionki/Bitter-Bold.otf', 30)
 czcionka_duża = pygame.font.Font('czcionki/Bitter-Bold.otf', 38)
@@ -29,6 +30,20 @@ screen.blit(runda, (900, 110))
 
 wyświetl_gracza = czcionka_mała.render('Tura gracza ', True, (102, 70, 62))
 screen.blit(wyświetl_gracza, (900, 150))
+
+litery = czcionka_mała.render('Twoje litery:', True, (116, 82, 74))
+screen.blit(litery, (900, 210))
+
+#przycisk wymiany liter
+przycisk = pygame.image.load('grafiki/button3.png')
+przycisk.set_colorkey((255, 255, 255))
+przycisk.convert_alpha()
+przycisk_rect = przycisk.get_rect(center = (970, 460))
+wymiana = czcionka_b_mała.render('WYMIANA', True, (241, 205, 191))
+wymiana_rect = wymiana.get_rect(center = przycisk_rect.center)
+screen.blit(przycisk, przycisk_rect)
+screen.blit(wymiana, wymiana_rect)
+
 """
 litery_gracza
 przycisk_wymiany

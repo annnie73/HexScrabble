@@ -1,8 +1,8 @@
-import argparse
+import argparse, re
 from random import shuffle
-import re
 import silnik_planszy as sp
 
+#parsowanie argumentów z wiersza poleceń
 parser = argparse.ArgumentParser()
 
 parser.add_argument('-s', '--liczba_graczy_sztucznych', type = int, nargs = '?', help = 'Liczba graczy sztucznych')
@@ -14,9 +14,14 @@ parser.add_argument('nazwy_graczy_realnych', type = str, nargs = '*', help = 'Na
 parser.set_defaults(plik_słownika = 'slownik.txt', plik_konfiguracyjny = 'hexscrabble.cnf')
 args = parser.parse_args()
 
+#wyświetlamy planszę
 plansza = sp.stwórz_planszę(8)
 sp.rysuj_planszę()
 screen = sp.screen
+czcionka = sp.czcionka
+czcionka_mała = sp.czcionka_mała
+czcionka_średnia = sp.czcionka_średnia
+czcionka_duża = sp.czcionka_duża
 
 #wczytujemy zmienne lettercnt i letterfreq z pliku konfiguracyjnego
 konfiguracja = compile(open(args.plik_konfiguracyjny).read(), 'string', 'exec')
@@ -50,7 +55,7 @@ def początkowy_zbiór_gracza():
 	for i in range(lettercnt):
 		dodaj_do_zbioru(zbiór)
 	return zbiór
-print(początkowy_zbiór_gracza())
+
 def zbiór_gracza_str(zbiór_gracza: list) -> str: 
 	#wyświetla zbiór liter gracza w formie litera(liczba_punktów)
 	lista = []
@@ -60,9 +65,11 @@ def zbiór_gracza_str(zbiór_gracza: list) -> str:
 	return ', '.join(lista)
 
 def litery_gracza(zbiór_gracza) -> list:
+	#zwraca listę jedynie litery, bez punktów
 	return [płytka[0].upper() for płytka in zbiór_gracza]
 
 def płytka(litera):
+	#zwraca krotkę w postaci (litera, liczba punktów)
 	for krotka in letterfreq:
 		if krotka[0] == litera.upper():
 			return (litera.upper(), krotka[1])
@@ -261,7 +268,7 @@ def wstaw(plansza, dostawka) -> bool:
 
 gracze = {}
 #słownik w postaci: nr gracza: [imię, zbiór liter, wynik]
-for i in range(2):#(len(args.nazwy_graczy_realnych)):
+for i in range(len(args.nazwy_graczy_realnych)):
 	gracze[i] = []
 	gracze[i].append(args.nazwy_graczy_realnych[i])
 	gracze[i].append(początkowy_zbiór_gracza())#[('K', 2), ('T', 2), ('R', 1), ('O', 1), ('Z', 1), ('O', 1), ('M', 2)])
@@ -324,20 +331,26 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 	#dopracować co to konfiguracja
 	global numer_rundy, aktualny_gracz, woreczek, plansza
 
-	if len(woreczek) != 0:
+	while len(woreczek) != 0:
 		#pokazuje, czyja jest tura, wyświetla aktualny stan planszy i zbiór liter gracza
-		numer = sp.czcionka_średnia.render(str(numer_rundy), True, (102, 70, 62))
-		screen.blit(numer, ((970, 110)))
-		imię = sp.czcionka_mała.render(gracze[aktualny_gracz][0], True, (102, 70, 62))
-		screen.blit(imię, ((970, 150)))
+		numer = czcionka_średnia.render(str(numer_rundy), True, (102, 70, 62))
+		screen.blit(numer, (970, 110))
+		imię = czcionka_mała.render(gracze[aktualny_gracz][0], True, (102, 70, 62))
+		screen.blit(imię, (970, 150))
+		#sp.pygame.display.update()
+		#sp.zegar.tick(60)
 		#print('\nRunda ' + str(numer_rundy) + ': Tura gracza ' + gracze[aktualny_gracz][0])
 		print('Liczba liter pozostałych w woreczku to ' + str(len(woreczek)) + '.')
 		#rysuj_planszę(plansza)
-		print('\n', plansza)
+		#print('\n', plansza)
 		
 		#ruch gracza realnego
 		if aktualny_gracz <= len(args.nazwy_graczy_realnych) - 1:
-			print('\nZbiór liter gracza ' + gracze[aktualny_gracz][0] + ': ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
+			sp.rysuj_planszę()
+			litery_graf = sp.czcionka_mała.render(zbiór_gracza_str(gracze[aktualny_gracz][1]), True, (102, 70, 62))
+			screen.blit(litery_graf, (900, 250))
+
+			#print('\nZbiór liter gracza ' + gracze[aktualny_gracz][0] + ': ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
 
 			while True:
 				czy_wymiana = input('\nCzy chcesz wymienić litery? ').lower()
@@ -403,6 +416,8 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 			numer_rundy += 1
 
 		#funkcja wołana rekurencyjnie
+		sp.pygame.display.update()
+		sp.zegar.tick(60)
 		rozgrywka(gracze, konfiguracja)
 
 	else:
@@ -424,7 +439,7 @@ print('\nWitaj w grze Hex Scrabble!')
 
 numer_rundy = 1
 aktualny_gracz = 0
-#if __name__ == '__main__':
-rozgrywka(gracze, konfiguracja)
+if __name__ == '__main__':
+	rozgrywka(gracze, konfiguracja)
 
 
