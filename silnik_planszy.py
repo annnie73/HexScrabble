@@ -253,7 +253,6 @@ def ruch_gracza_realnego(aktualny_gracz):
 				if przycisk_rect.collidepoint(pozycja_myszki):
 					screen.blit(przycisk2, przycisk2_rect)
 					screen.blit(wymiana, wymiana_rect)
-					pygame.time.delay(1000)
 					#screen.blit(przycisk, przycisk_rect)
 					#screen.blit(wymiana, wymiana_rect)
 					return None

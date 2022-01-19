@@ -402,16 +402,16 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 				sp.rysuj_planszę()
 				wyświetl_litery(aktualny_gracz)
 				sp.ruch_gracza_realnego(aktualny_gracz)
-				dostawka = sp.ruch_gracza_realnego(aktualny_gracz)
+				#dostawka = sp.ruch_gracza_realnego(aktualny_gracz)
 
-				while True:
-					if dostawka == None:
-						wymiana(aktualny_gracz)
-						break
-					elif dostawka != None:
-						if wstaw(plansza, dostawka):
-							sp.rysuj_planszę()
-							break
+				if sp.ruch_gracza_realnego(aktualny_gracz):
+					if wstaw(plansza, sp.ruch_gracza_realnego(aktualny_gracz)):
+						sp.rysuj_planszę() 
+				else:
+					wymiana(aktualny_gracz)
+					
+					
+
 							#blitujemy literki gracza
 							#blitujemy punkty gracza
 							#przechodzimy do kolejnego gracza
