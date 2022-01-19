@@ -1,4 +1,4 @@
-import argparse, re
+import argparse, re, pygame
 from random import shuffle
 import silnik_planszy as sp
 
@@ -102,16 +102,64 @@ def sprawdź_wymianę(litery_do_wymiany):
 			return False
 	return True
 
-def wymiana(): 
-	#tworzymy rect z wyświetlanych liter
-	#blitujemy komunikat 'Kliknij myszką na litery, które chcesz wymienić, a następnie naciśnij ENTER'
-	#zmieniamy te litery na ciemniejsze
+def wyświetl_litery(aktualny_gracz):
+	#tworzy słownik płytek z ich współrzędnymi w pikselach i wyświetla litery gracza
+	słownik_płytek = {}
+	x = 882
+	y = 253
+	for i in range(len(gracze[aktualny_gracz][1])):
+		płytka = gracze[aktualny_gracz][1][i][0]+'(' + str(gracze[aktualny_gracz][1][i][1]) + ')'
+		if i != len(gracze[aktualny_gracz][1]) - 1:
+			płytka_graf = sp.czcionka_mała.render((płytka + ', '), True, (102, 70, 62))
+		else: płytka_graf = sp.czcionka_mała.render(płytka, True, (102, 70, 62))
+		płytka_rect = płytka_graf.get_rect(topleft = (x,y))
+		słownik_płytek[płytka_graf] = płytka_rect
+		screen.blit(płytka_graf, płytka_rect)
+		x += płytka_rect.width
+	return słownik_płytek
+
+def wymiana(aktualny_gracz):
+	słownik_płytek = wyświetl_litery(aktualny_gracz)
+	instrukcja = czcionka_mała.render('Kliknij myszką na litery, które chcesz wymienić, a następnie naciśnij ENTER', True, (102, 70, 62))
+	screen.blit(instrukcja, (880, 303))
+
+	litery_do_wymiany = []
+
+	while True:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				exit()
+
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				pozycja_myszki = pygame.mouse.get_pos()
+
+				for płytka in słownik_płytek:
+					#identyfikujemy sześciokąt, na który kliknął użytkownik, żeby wpisać literę
+					płytka_rect = słownik_płytek[płytka]
+
+					if płytka_rect.collidepoint(pozycja_myszki):
+						#kiedy użytkownik klika w literę, podświetlamy ją i dodajemy do liter do wymiany
+						litery_do_wymiany.append(płytka[0])
+						ciemna_płytka = sp.czcionka_mała.render((płytka + ', '), True, (69, 39, 30))
+						ciemna_płytka_rect = płytka_rect
+						screen.blit(ciemna_płytka, ciemna_płytka_rect)
+
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_RETURN:
+					for litera in litery_do_wymiany:
+						usuń_ze_zbioru(gracze[aktualny_gracz][1], litera)
+					uzupełnij_zbiór(gracze[aktualny_gracz][1])
+					sp.inicjalizacja_gry()
+					sp.rysuj_planszę()
+
+
 	#po kliknięciu enter:
 		#wymiana liter
 		#blitujemy tło, planszę
 		#blitujemy komunikat 'Twoje aktualne litery' + wymienione literki
 
-	
+	""""
 	litery_do_wymiany = re.split(r', |; |,|;|\s', input('Które litery chcesz wymienić? '))
 	if not sprawdź_wymianę(litery_do_wymiany): wymiana()
 
@@ -119,7 +167,7 @@ def wymiana():
 		usuń_ze_zbioru(gracze[aktualny_gracz][1], litera)
 	uzupełnij_zbiór(gracze[aktualny_gracz][1])
 	print('\nLitery zostały wymienione. \nTwój aktualny zbiór liter to: ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
-	
+	"""
 def stwórz_dostawkę(słowo: str, pierwsza_współrzędna: tuple, kierunek: str):
 	#zwraca listę krotek w postaci (litera, współrzędne) w zależności od kierunku wpisywanego słowa
 	słowo = słowo.upper()
@@ -176,7 +224,6 @@ def sprawdź_słowo(słowo: str):
 	return False
 
 def sprawdź_czy_poprawne(dostawka): 
-
 	#inicjujemy listę liter, których potrzebuje gracz, aby utworzyć dane słowo
 	potrzebne_litery = []
 
@@ -353,19 +400,22 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 			#ruch gracza realnego
 			if aktualny_gracz <= len(args.nazwy_graczy_realnych) - 1: #zmienimy, zeby mogl byc najpierw komputer
 				sp.rysuj_planszę()
-				litery_graf = sp.czcionka_mała.render(zbiór_gracza_str(gracze[aktualny_gracz][1]), True, (102, 70, 62))
-				screen.blit(litery_graf, (882, 253))
+				wyświetl_litery(aktualny_gracz)
+				sp.ruch_gracza_realnego(aktualny_gracz)
+				dostawka = sp.ruch_gracza_realnego(aktualny_gracz)
 
-				if not sp.ruch_gracza_realnego():
-					wymiana()
-				else:
-					dostawka = sp.ruch_gracza_realnego()
-					if wstaw(plansza, dostawka):
-						sp.rysuj_planszę()
-						#blitujemy literki gracza
-						#blitujemy punkty gracza
-						#przechodzimy do kolejnego gracza
-						#print('\nSłowo zostało ustawione. \nTwój aktualny zbiór liter to: ' + #zbiór_gracza_str(gracze[aktualny_gracz][1]))
+				while True:
+					if dostawka == None:
+						wymiana(aktualny_gracz)
+						break
+					elif dostawka != None:
+						if wstaw(plansza, dostawka):
+							sp.rysuj_planszę()
+							break
+							#blitujemy literki gracza
+							#blitujemy punkty gracza
+							#przechodzimy do kolejnego gracza
+							#print('\nSłowo zostało ustawione. \nTwój aktualny zbiór liter to: ' + #zbiór_gracza_str(gracze[aktualny_gracz][1]))
 
 				#print('\nZbiór liter gracza ' + gracze[aktualny_gracz][0] + ': ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
 

@@ -41,7 +41,7 @@ przycisk_rect = przycisk.get_rect(center = (960, 460))
 przycisk2 = pygame.image.load('grafiki/button2.png')
 przycisk2.set_colorkey((255, 255, 255))
 przycisk2.convert_alpha()
-przycisk2_rect = przycisk.get_rect(center = (970, 460))
+przycisk2_rect = przycisk.get_rect(center = (960, 460))
 
 wymiana = czcionka_b_mała.render('WYMIANA', True, (241, 205, 191))
 wymiana_rect = wymiana.get_rect(center = przycisk_rect.center)
@@ -234,7 +234,7 @@ def aktualizuj_liste_mozliwych_pol(listamozliwychpol):
 	global pole
 	listamozliwychpol.remove(pole)
 
-def ruch_gracza_realnego():
+def ruch_gracza_realnego(aktualny_gracz):
 	#zwraca dostawkę na podstawie liter wpisanych przez gracza lub None, jeśli gracz wymienia litery
 
 	global aktualny_heksagon, pole, dopisuje_dostawkę, dostawka, lit
@@ -253,14 +253,14 @@ def ruch_gracza_realnego():
 				if przycisk_rect.collidepoint(pozycja_myszki):
 					screen.blit(przycisk2, przycisk2_rect)
 					screen.blit(wymiana, wymiana_rect)
+					pygame.time.delay(1000)
+					#screen.blit(przycisk, przycisk_rect)
+					#screen.blit(wymiana, wymiana_rect)
 					return None
 
 				for x, y in plansza:
 					#identyfikujemy sześciokąt, na który kliknął użytkownik, żeby wpisać literę
 					heksagon_rect = plansza[x,y][1]
-
-					
-					#można dodać opcję, że kiedy klika strzałkę w prawo, lewo, górę lub dół, następny sześciokąt się podświetla !!
 
 					if heksagon_rect.collidepoint(pozycja_myszki):
 						#kiedy użytkownik klika w następny sześciokąt, poprzedni przestaje się podświetlać
@@ -382,4 +382,6 @@ def ruch_gracza_realnego():
 		pygame.display.update()
 		zegar.tick(60)
 
-#ruch_gracza_realnego()
+if __name__ == '__main__':
+	inicjalizacja_gry()
+	ruch_gracza_realnego(1)
