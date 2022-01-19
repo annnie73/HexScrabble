@@ -35,10 +35,16 @@ litery = czcionka_mała.render('Twoje litery:', True, (116, 82, 74))
 screen.blit(litery, (900, 210))
 
 #przycisk wymiany liter
-przycisk = pygame.image.load('grafiki/button3.png')
+przycisk = pygame.image.load('grafiki/button.png')
 przycisk.set_colorkey((255, 255, 255))
 przycisk.convert_alpha()
 przycisk_rect = przycisk.get_rect(center = (970, 460))
+
+przycisk2 = pygame.image.load('grafiki/button2.png')
+przycisk2.set_colorkey((255, 255, 255))
+przycisk2.convert_alpha()
+przycisk2_rect = przycisk.get_rect(center = (970, 460))
+
 wymiana = czcionka_b_mała.render('WYMIANA', True, (241, 205, 191))
 wymiana_rect = wymiana.get_rect(center = przycisk_rect.center)
 screen.blit(przycisk, przycisk_rect)
@@ -233,11 +239,9 @@ def ruch_gracza_realnego():
 
 				#sprawdzamy czy uzytkownik chce wymienić litery
 				if przycisk_rect.collidepoint(pozycja_myszki):
+					screen.blit(przycisk2, przycisk2_rect)
+					screen.blit(wymiana, wymiana_rect)
 					return None
-
-
-
-
 
 				for x, y in plansza:
 					#identyfikujemy sześciokąt, na który kliknął użytkownik, żeby wpisać literę
@@ -365,3 +369,5 @@ def ruch_gracza_realnego():
 
 		pygame.display.update()
 		zegar.tick(60)
+
+ruch_gracza_realnego()
