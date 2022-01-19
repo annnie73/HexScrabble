@@ -103,6 +103,15 @@ def sprawdź_wymianę(litery_do_wymiany):
 	return True
 
 def wymiana(): 
+	#tworzymy rect z wyświetlanych liter
+	#blitujemy komunikat 'Kliknij myszką na litery, które chcesz wymienić, a następnie naciśnij ENTER'
+	#zmieniamy te litery na ciemniejsze
+	#po kliknięciu enter:
+		#wymiana liter
+		#blitujemy tło, planszę
+		#blitujemy komunikat 'Twoje aktualne litery' + wymienione literki
+
+	
 	litery_do_wymiany = re.split(r', |; |,|;|\s', input('Które litery chcesz wymienić? '))
 	if not sprawdź_wymianę(litery_do_wymiany): wymiana()
 
@@ -330,95 +339,87 @@ print(utwórz_słowa([('N', 1), ('A', 1), ('Ł', 3), ('E', 1), ('Y', 2), ('G', 3
 def rozgrywka(gracze: dict, konfiguracja: list):
 	#dopracować co to konfiguracja
 	global numer_rundy, aktualny_gracz, woreczek, plansza
+	sp.inicjalizacja_gry()
+	while True:
+		while len(woreczek) != 0:
+			#pokazuje, czyja jest tura, wyświetla aktualny stan planszy i zbiór liter gracza
+			numer = czcionka_średnia.render(str(numer_rundy), True, (102, 70, 62))
+			screen.blit(numer, (988, 110))
+			imię = czcionka_mała.render(gracze[aktualny_gracz][0], True, (102, 70, 62))
+			screen.blit(imię, (1060, 150))
+			#print('Liczba liter pozostałych w woreczku to ' + str(len(woreczek)) + '.')
+			#rysuj_planszę(plansza)
+			
+			#ruch gracza realnego
+			if aktualny_gracz <= len(args.nazwy_graczy_realnych) - 1: #zmienimy, zeby mogl byc najpierw komputer
+				sp.rysuj_planszę()
+				litery_graf = sp.czcionka_mała.render(zbiór_gracza_str(gracze[aktualny_gracz][1]), True, (102, 70, 62))
+				screen.blit(litery_graf, (882, 253))
 
-	while len(woreczek) != 0:
-		#pokazuje, czyja jest tura, wyświetla aktualny stan planszy i zbiór liter gracza
-		numer = czcionka_średnia.render(str(numer_rundy), True, (102, 70, 62))
-		screen.blit(numer, (970, 110))
-		imię = czcionka_mała.render(gracze[aktualny_gracz][0], True, (102, 70, 62))
-		screen.blit(imię, (970, 150))
-		#sp.pygame.display.update()
-		#sp.zegar.tick(60)
-		#print('\nRunda ' + str(numer_rundy) + ': Tura gracza ' + gracze[aktualny_gracz][0])
-		print('Liczba liter pozostałych w woreczku to ' + str(len(woreczek)) + '.')
-		#rysuj_planszę(plansza)
-		#print('\n', plansza)
-		
-		#ruch gracza realnego
-		if aktualny_gracz <= len(args.nazwy_graczy_realnych) - 1:
-			sp.rysuj_planszę()
-			litery_graf = sp.czcionka_mała.render(zbiór_gracza_str(gracze[aktualny_gracz][1]), True, (102, 70, 62))
-			screen.blit(litery_graf, (900, 250))
-
-			#print('\nZbiór liter gracza ' + gracze[aktualny_gracz][0] + ': ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
-
-			while True:
-				czy_wymiana = input('\nCzy chcesz wymienić litery? ').lower()
-				if czy_wymiana == 'tak' or czy_wymiana == 't':
+				if not sp.ruch_gracza_realnego():
 					wymiana()
-					break
-				elif czy_wymiana == 'nie' or czy_wymiana == 'n':
-					break
 				else:
-					print('Jedyne możliwe odpowiedzi to tak/t i nie/n.')
-					continue
+					dostawka = sp.ruch_gracza_realnego()
+					if wstaw(plansza, dostawka):
+						sp.rysuj_planszę()
+						#blitujemy literki gracza
+						#blitujemy punkty gracza
+						#przechodzimy do kolejnego gracza
+						#print('\nSłowo zostało ustawione. \nTwój aktualny zbiór liter to: ' + #zbiór_gracza_str(gracze[aktualny_gracz][1]))
 
-			if czy_wymiana != 'tak' and czy_wymiana != 't':
-				dostawka = sp.ruch_gracza_realnego()
-				if wstaw(plansza, dostawka):
-					pass
-					#wynik
+				#print('\nZbiór liter gracza ' + gracze[aktualny_gracz][0] + ': ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
 
-				count = 1
-				while count <= 6:
-					słowo_gracza = input('Podaj słowo, które chcesz zagrać: ')
-					if not sprawdź_słowo(słowo_gracza): 
-						print('Twoje słowo jest nieprawidłowe.')
-						count += 1
-						continue
+				"""
+					count = 1
+					while count <= 6:
+						słowo_gracza = input('Podaj słowo, które chcesz zagrać: ')
+						if not sprawdź_słowo(słowo_gracza): 
+							print('Twoje słowo jest nieprawidłowe.')
+							count += 1
+							continue
 
-					współrzędne = input('Podaj współrzędne pierwszej litery: ')
-					if sprawdź_współrzędne(współrzędne): 
-						współrzędne = sprawdź_współrzędne(współrzędne)
-					else: 
-						print('Te współrzędne są nieprawidłowe.')
-						count += 1
-						continue
-
-					kierunek = input('Podaj kierunek, w którym chcesz ustawić słowo - poziomo (p), w górę (g) lub w dół (d): ')
-					if stwórz_dostawkę(słowo_gracza, współrzędne, kierunek):
-						dostawka = stwórz_dostawkę(słowo_gracza, współrzędne, kierunek)
-						if wstaw(plansza, dostawka):
-							print('\n', plansza)
-							print('\nSłowo zostało ustawione. \nTwój aktualny zbiór liter to: ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
-							break
+						współrzędne = input('Podaj współrzędne pierwszej litery: ')
+						if sprawdź_współrzędne(współrzędne): 
+							współrzędne = sprawdź_współrzędne(współrzędne)
 						else: 
+							print('Te współrzędne są nieprawidłowe.')
+							count += 1
+							continue
+
+						kierunek = input('Podaj kierunek, w którym chcesz ustawić słowo - poziomo (p), w górę (g) lub w dół (d): ')
+						if stwórz_dostawkę(słowo_gracza, współrzędne, kierunek):
+							dostawka = stwórz_dostawkę(słowo_gracza, współrzędne, kierunek)
+							if wstaw(plansza, dostawka):
+								print('\n', plansza)
+								print('\nSłowo zostało ustawione. \nTwój aktualny zbiór liter to: ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
+								break
+							else: 
+								count += 1
+								continue
+						else:
+							print('Ten kierunek nie jest poprawny.')
 							count += 1
 							continue
 					else:
-						print('Ten kierunek nie jest poprawny.')
-						count += 1
-						continue
-				else:
-					print('Podałeś nieprawidłowe dane za dużo razy. Twoja tura przepadła. ')
+						print('Podałeś nieprawidłowe dane za dużo razy. Twoja tura przepadła. ')
 
-			#wyświetlamy aktualny wynik gracza
-			print('\n' + gracze[aktualny_gracz][0] + ', Twój aktualny wynik to ' + str(gracze[aktualny_gracz][2]) + '.')
+				#wyświetlamy aktualny wynik gracza
+				print('\n' + gracze[aktualny_gracz][0] + ', Twój aktualny wynik to ' + str(gracze[aktualny_gracz][2]) + '.')
+				"""
+			#else:
+				#ruch gracza sztuczego
 
-		#else:
-			#ruch gracza sztuczego
+			#kolejny gracz
+			if aktualny_gracz != len(gracze)-1:
+				aktualny_gracz += 1
+			else:
+				aktualny_gracz = 0
+				numer_rundy += 1
 
-		#kolejny gracz
-		if aktualny_gracz != len(gracze)-1:
-			aktualny_gracz += 1
-		else:
-			aktualny_gracz = 0
-			numer_rundy += 1
-
-		#funkcja wołana rekurencyjnie
-		sp.pygame.display.update()
-		sp.zegar.tick(60)
-		rozgrywka(gracze, konfiguracja)
+			#funkcja wołana rekurencyjnie
+			sp.pygame.display.update()
+			sp.zegar.tick(60)
+			rozgrywka(gracze, konfiguracja)
 
 	else:
 		koniec_gry()
@@ -435,7 +436,7 @@ def koniec_gry():
 	print('Koniec gry. Zwycięzcą jest ' + zwycięzca + '.')
 
 print(gracze)
-print('\nWitaj w grze Hex Scrabble!')
+#print('\nWitaj w grze Hex Scrabble!')
 
 numer_rundy = 1
 aktualny_gracz = 0

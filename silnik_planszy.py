@@ -1,8 +1,6 @@
 from operator import truediv
 from termios import OFDEL
-import pygame
-import math
-import copy
+import pygame, math, copy
 from sys import exit
 
 #inicjalizacja biblioteki pygame, czcionek i outline'u planszy
@@ -20,25 +18,25 @@ czcionka_duża = pygame.font.Font('czcionki/Bitter-Bold.otf', 38)
 
 tło = pygame.image.load('grafiki/wallpaper.jpeg')
 tło = pygame.transform.rotozoom(tło, 0, 1.2)
-screen.blit(tło, (0,0))
+#screen.blit(tło, (0,0))
 
 nazwa = czcionka_duża.render('Hex Scrabble', True, (116, 82, 74))
-screen.blit(nazwa, (1050, 50))
+#screen.blit(nazwa, (1050, 50))
 
 runda = czcionka_średnia.render('Runda ', True, (102, 70, 62))
-screen.blit(runda, (900, 110))
+#screen.blit(runda, (900, 110))
 
 wyświetl_gracza = czcionka_mała.render('Tura gracza ', True, (102, 70, 62))
-screen.blit(wyświetl_gracza, (900, 150))
+#screen.blit(wyświetl_gracza, (900, 150))
 
 litery = czcionka_mała.render('Twoje litery:', True, (116, 82, 74))
-screen.blit(litery, (900, 210))
+#screen.blit(litery, (900, 210))
 
 #przycisk wymiany liter
 przycisk = pygame.image.load('grafiki/button.png')
 przycisk.set_colorkey((255, 255, 255))
 przycisk.convert_alpha()
-przycisk_rect = przycisk.get_rect(center = (970, 460))
+przycisk_rect = przycisk.get_rect(center = (960, 460))
 
 przycisk2 = pygame.image.load('grafiki/button2.png')
 przycisk2.set_colorkey((255, 255, 255))
@@ -47,8 +45,8 @@ przycisk2_rect = przycisk.get_rect(center = (970, 460))
 
 wymiana = czcionka_b_mała.render('WYMIANA', True, (241, 205, 191))
 wymiana_rect = wymiana.get_rect(center = przycisk_rect.center)
-screen.blit(przycisk, przycisk_rect)
-screen.blit(wymiana, wymiana_rect)
+#screen.blit(przycisk, przycisk_rect)
+#screen.blit(wymiana, wymiana_rect)
 
 """
 litery_gracza
@@ -72,6 +70,20 @@ heksagon_3.convert_alpha()
 heksagon_3_rect = heksagon_3.get_rect(topleft = (0,0))
 
 tekst = czcionka.render('A', True, (116, 82, 74))
+
+def inicjalizacja_gry():
+	global screen, czcionka, czcionka_b_mała, czcionka_duża, czcionka_mała, czcionka_średnia, tło
+	global nazwa, runda, wyświetl_gracza, litery, przycisk, przycisk_rect, przycisk2, przycisk2_rect
+	global wymiana, wymiana_rect, heksagon, heksagon_1_rect, heksagon_2, heksagon_2_rect
+	global heksagon_3, heksagon_3_rect, tekst
+
+	screen.blit(tło, (0,0))
+	screen.blit(nazwa, (1050, 50))
+	screen.blit(runda, (880, 110))
+	screen.blit(wyświetl_gracza, (880, 150))
+	screen.blit(litery, (880, 210))
+	screen.blit(przycisk, przycisk_rect)
+	screen.blit(wymiana, wymiana_rect)
 
 plansza = {}
 def stwórz_planszę(r):
@@ -268,7 +280,7 @@ def ruch_gracza_realnego():
 			if event.type == pygame.KEYDOWN:
 				if aktualny_heksagon:
 
-					if not dopisuje_dostawke:
+					if not dopisuje_dostawkę:
 						kopia_planszy = copy.deepcopy(plansza)
 						dopisuje_dostawke = True
 
@@ -370,4 +382,4 @@ def ruch_gracza_realnego():
 		pygame.display.update()
 		zegar.tick(60)
 
-ruch_gracza_realnego()
+#ruch_gracza_realnego()
