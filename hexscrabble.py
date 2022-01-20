@@ -246,9 +246,10 @@ def sprawdź_słowo(słowo: str):
 def sprawdź_wstecz_p(x,y, słowo):
 	global kopia_planszy
 
-	if kopia_planszy[(x-1, y)][0] == ' ':
-		#musimy jeszcze odwrócić słowo
-		return słowo[::-1] #mamy na razie sam początek słowa
+	if (x-1, y) in kopia_planszy:
+		if kopia_planszy[(x-1, y)][0] == ' ':
+			#musimy jeszcze odwrócić słowo
+			return słowo[::-1] #mamy na razie sam początek słowa
 	
 	słowo += kopia_planszy[(x-1, y)][0]
 	return sprawdź_wstecz_p(x-1, y, słowo)
@@ -256,8 +257,9 @@ def sprawdź_wstecz_p(x,y, słowo):
 def sprawdź_wstecz_g(x,y, słowo):
 	global kopia_planszy
 
-	if kopia_planszy[x, y-1][0] == ' ':
-		return słowo[::-1] 
+	if (x, y-1) in kopia_planszy:
+		if kopia_planszy[(x, y-1)][0] == ' ':
+			return słowo[::-1] 
 	
 	słowo += kopia_planszy[(x, y-1)][0]
 	return sprawdź_wstecz_g(x, y-1, słowo)
@@ -265,8 +267,9 @@ def sprawdź_wstecz_g(x,y, słowo):
 def sprawdź_wstecz_d(x,y, słowo):
 	global kopia_planszy
 
-	if kopia_planszy[(x-1, y+1)][0] == ' ':
-		return słowo[::-1]
+	if (x-1, y+1) in kopia_planszy:
+		if kopia_planszy[(x-1, y+1)][0] == ' ':
+			return słowo[::-1]
 	
 	słowo += kopia_planszy[(x-1, y+1)][0]
 	return sprawdź_wstecz_d(x-1,y+1, słowo)
@@ -274,8 +277,9 @@ def sprawdź_wstecz_d(x,y, słowo):
 def sprawdź_dalej_p(x,y, słowo):
 	global kopia_planszy
 
-	if kopia_planszy[(x+1, y)][0] == ' ':
-		return słowo 
+	if (x+1, y) in kopia_planszy:
+		if kopia_planszy[(x+1, y)][0] == ' ':
+			return słowo 
 	
 	słowo += kopia_planszy[(x+1, y)][0]
 	return sprawdź_dalej_p(x+1, y, słowo)
@@ -283,8 +287,9 @@ def sprawdź_dalej_p(x,y, słowo):
 def sprawdź_dalej_g(x,y, słowo):
 	global kopia_planszy
 
-	if kopia_planszy[(x, y+1)][0] == ' ':
-		return słowo 
+	if (x, y+1) in kopia_planszy:
+		if kopia_planszy[(x, y+1)][0] == ' ':
+			return słowo 
 
 	słowo += kopia_planszy[(x, y+1)][0]
 	return sprawdź_dalej_g(x, y+1, słowo)
@@ -292,8 +297,9 @@ def sprawdź_dalej_g(x,y, słowo):
 def sprawdź_dalej_d(x,y, słowo):
 	global kopia_planszy
 
-	if kopia_planszy[(x+1, y-1)][0] == ' ':
-		return słowo 
+	if (x+1, y-1) in kopia_planszy:
+		if kopia_planszy[(x+1, y-1)][0] == ' ':
+			return słowo 
 
 	słowo += kopia_planszy[(x+1, y-1)][0]
 	return sprawdź_dalej_d(x+1,y-1, słowo)
@@ -528,7 +534,7 @@ def sprawdź_czy_poprawne(dostawka):
 		return False
 
 	#upewniamy się, że pierwsze słowo postawione na planszy przechodzi przez punkt 0,0
-	if all(plansza[klucz] == ' ' for klucz in plansza) and (not sprawdź_pierwszą_współrzędną(dostawka)):
+	if all(kopia_planszy[klucz] == ' ' for klucz in kopia_planszy) and (not sprawdź_pierwszą_współrzędną(dostawka)):
 		komunikat = sp.czcionka_b_mała.render('Pierwsze słowo na planszy musi', True, (102, 70, 62))
 		komunikat2 = sp.czcionka_b_mała.render('przechodzić przez jej środek.', True, (102, 70, 62))
 		screen.blit(komunikat, (880, 338))
@@ -554,13 +560,13 @@ def punkty(plansza, dostawka) -> int:
 #zwraca ile punktów zdobywają litery wstawione na planszę zgodnie z dostawką
 #jeśli dostawka jest nieprawidłowa zwraca −1 lub rzuca wyjątkiem. Plansza nie zmienia się.
 	count = 0
-	if sprawdź_czy_poprawne(dostawka):
-		for lista in dostawka:
-			litera = lista[0].upper()
+	lista_słów, potrzebne_litery = sprawdź_czy_poprawne(dostawka)
+	if not lista_słów or not potrzebne_litery: return False
+	for słowo in lista_słów:
+		for litera in słowo:
 			for i in range(len(letterfreq)):
 				if letterfreq[i][0] == litera:
 					count += letterfreq[i][1]
-					continue
 		return count
 	raise Exception('Niepoprawna dostawka.')
 
@@ -569,8 +575,8 @@ def wstaw(dostawka) -> bool:
 
 	global plansza
 	#jeśli dostawka była prawidłowa, funkcja sprawdź_czy_poprawne zwraca listę liter do usunięcia ze zbioru gracza
-	potrzebne_litery = sprawdź_czy_poprawne(dostawka)
-	if not potrzebne_litery: return False
+	if not sprawdź_czy_poprawne(dostawka): return False
+	lista_słów, potrzebne_litery = sprawdź_czy_poprawne(dostawka)
 
 	gracze[aktualny_gracz][2] += punkty(plansza, dostawka)
 	for lit in potrzebne_litery:
@@ -707,17 +713,6 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 						wyświetl_litery(aktualny_gracz)
 						koniec_tury(aktualny_gracz)
 						break
-					
-					
-					
-
-							#blitujemy literki gracza
-							#blitujemy punkty gracza
-							#przechodzimy do kolejnego gracza
-							#print('\nSłowo zostało ustawione. \nTwój aktualny zbiór liter to: ' + #zbiór_gracza_str(gracze[aktualny_gracz][1]))
-
-				#wyświetlamy aktualny wynik gracza
-				print('\n' + gracze[aktualny_gracz][0] + ', Twój aktualny wynik to ' + str(gracze[aktualny_gracz][2]) + '.')
 				
 			#else:
 				#ruch gracza sztuczego
