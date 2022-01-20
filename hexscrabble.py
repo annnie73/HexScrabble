@@ -103,24 +103,23 @@ def sprawdź_wymianę(litery_do_wymiany):
 	return True
 
 def wyświetl_litery(aktualny_gracz):
-	#tworzy słownik płytek z ich współrzędnymi w pikselach i wyświetla litery gracza
-	słownik_płytek = {}
+	#tworzy listkę płytek z ich współrzędnymi w pikselach i wyświetla litery gracza
+	lista_płytek = []
 	x = 882
 	y = 253
 	for i in range(len(gracze[aktualny_gracz][1])):
-		#krotka = gracze[aktualny_gracz][1][i]
 		płytka = gracze[aktualny_gracz][1][i][0] +'(' + str(gracze[aktualny_gracz][1][i][1]) + ')'
 		if i != len(gracze[aktualny_gracz][1]) - 1:
 			płytka_graf = sp.czcionka_mała.render((płytka + ', '), True, (102, 70, 62))
 		else: płytka_graf = sp.czcionka_mała.render(płytka, True, (102, 70, 62))
 		płytka_rect = płytka_graf.get_rect(topleft = (x,y))
-		słownik_płytek[płytka] = [płytka_graf, płytka_rect]
+		lista_płytek.append((płytka, płytka_graf, płytka_rect))
 		screen.blit(płytka_graf, płytka_rect)
 		x += płytka_rect.width
-	return słownik_płytek
+	return lista_płytek
 
 def wymiana(aktualny_gracz):
-	słownik_płytek = wyświetl_litery(aktualny_gracz)
+	lista_płytek = wyświetl_litery(aktualny_gracz)
 	instrukcja1 = sp.czcionka_b_mała.render('Kliknij myszką na litery, które chcesz wymienić,', True, (102, 70, 62))
 	instrukcja2 = sp.czcionka_b_mała.render('a następnie naciśnij ENTER', True, (102, 70, 62))
 	screen.blit(instrukcja1, (880, 303))
@@ -137,14 +136,18 @@ def wymiana(aktualny_gracz):
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				pozycja_myszki = pygame.mouse.get_pos()
 
-				for płytka in słownik_płytek:
+				for i in range(len(lista_płytek)):
 					#identyfikujemy sześciokąt, na który kliknął użytkownik, żeby wpisać literę
-					płytka_rect = słownik_płytek[płytka][1]
+					płytka = lista_płytek[i][0]
+					płytka_rect = lista_płytek[i][2]
 
 					if płytka_rect.collidepoint(pozycja_myszki):
 						#kiedy użytkownik klika w literę, podświetlamy ją i dodajemy do liter do wymiany
 						litery_do_wymiany.append(płytka[0])
-						ciemna_płytka = sp.czcionka_mała.render((płytka + ', '), True, (69, 39, 30))
+						if i != len(lista_płytek) - 1:
+							ciemna_płytka = sp.czcionka_mała.render((płytka + ', '), True, (69, 39, 30))
+						else:
+							ciemna_płytka = sp.czcionka_mała.render(płytka, True, (69, 39, 30))
 						ciemna_płytka_rect = płytka_rect
 						screen.blit(ciemna_płytka, ciemna_płytka_rect)
 
@@ -156,13 +159,31 @@ def wymiana(aktualny_gracz):
 					sp.inicjalizacja_gry()
 					sp.rysuj_planszę()
 					napis2 = czcionka_mała.render('Twój aktualny zbiór liter:', True, (116, 82, 74))
-					screen.blit(napis2, (900, 210))
+					screen.blit(napis2, (880, 210))
 					komunikat = sp.czcionka_b_mała.render('Litery zostały wymienione.', True, (102, 70, 62))
 					screen.blit(komunikat, (880, 303))
 					return True
 		pygame.display.update()
 		sp.zegar.tick(60)
 		
+def koniec_tury(aktualny_gracz):
+	while True:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				exit()
+
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				pozycja_myszki = pygame.mouse.get_pos()
+
+				if sp.przycisk_k_rect.collidepoint(pozycja_myszki):
+					screen.blit(sp.przycisk2, sp.przycisk_k2_rect)
+					screen.blit(sp.koniec, sp.koniec_rect)
+					return True
+
+		pygame.display.update()
+		sp.zegar.tick(60)
+
 def stwórz_dostawkę(słowo: str, pierwsza_współrzędna: tuple, kierunek: str):
 	#zwraca listę krotek w postaci (litera, współrzędne) w zależności od kierunku wpisywanego słowa
 	słowo = słowo.upper()
@@ -229,10 +250,8 @@ def sprawdź_czy_poprawne(dostawka):
 		#sprawdzamy poprawność współrzędnych
 
 		if współrzędne not in plansza:
-			#jeśli takich współrzędnych nie ma, dodajemy je
-			plansza[współrzędne] = ' '
-			potrzebne_litery.append(litera.upper())
-			#... później trzeba będzie w tym miejscu albo przy rysowaniu planszy dodać puste rzędy
+			#trza dodać blita wszędzie
+			return False
 
 		elif plansza[współrzędne] == ' ':
 			#jeśli nic nie ma na tym miejscu, dana litera musi być w zbiorze gracza
@@ -382,6 +401,7 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 	#dopracować co to konfiguracja
 	global numer_rundy, aktualny_gracz, woreczek, plansza
 	sp.inicjalizacja_gry()
+	screen.blit(sp.litery, (880, 210))
 	while True:
 		while len(woreczek) != 0:
 			#pokazuje, czyja jest tura, wyświetla aktualny stan planszy i zbiór liter gracza
@@ -389,28 +409,25 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 			screen.blit(numer, (988, 110))
 			imię = czcionka_mała.render(gracze[aktualny_gracz][0], True, (102, 70, 62))
 			screen.blit(imię, (1060, 150))
+			sp.rysuj_planszę()
 			#print('Liczba liter pozostałych w woreczku to ' + str(len(woreczek)) + '.')
-			#rysuj_planszę(plansza)
 			
 			#ruch gracza realnego
 			if aktualny_gracz <= len(args.nazwy_graczy_realnych) - 1: #zmienimy, zeby mogl byc najpierw komputer
 				sp.rysuj_planszę()
 				wyświetl_litery(aktualny_gracz)
-
-				if sp.ruch_gracza_realnego(aktualny_gracz):
-					if wstaw(plansza, sp.ruch_gracza_realnego(aktualny_gracz)):
+				dostawka = sp.ruch_gracza_realnego(aktualny_gracz)
+				if dostawka:#sp.ruch_gracza_realnego(aktualny_gracz):
+					if wstaw(plansza, dostawka):
 						sp.rysuj_planszę() 
+						#dokończyć - przede wszystkim punkty i nowe literki
 				else:
 					wymiana(aktualny_gracz)
 					screen.blit(numer, (988, 110))
 					screen.blit(imię, (1060, 150))
 					wyświetl_litery(aktualny_gracz)
-					stopwatch = pygame.time.get_ticks()
-					#jakoś inaczej trzeba to będzie rozegrać
-					while True:
-						stopwatch2 = pygame.time.get_ticks()
-						if stopwatch2 - stopwatch >= 2000:
-							break
+					koniec_tury(aktualny_gracz)
+					
 					
 					
 

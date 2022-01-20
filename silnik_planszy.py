@@ -13,46 +13,38 @@ zegar = pygame.time.Clock()
 czcionka = pygame.font.Font('czcionki/Bitter-Regular.otf', 32)
 czcionka_b_mała = pygame.font.Font('czcionki/Bitter-Regular.otf', 22)
 czcionka_mała = pygame.font.Font('czcionki/Bitter-Regular.otf', 30)
-czcionka_najmn = pygame.font.Font('czcionki/Bitter-Regular.otf', 30)
+czcionka_najmn = pygame.font.Font('czcionki/Bitter-Regular.otf', 20)
 czcionka_średnia = pygame.font.Font('czcionki/Bitter-Bold.otf', 30)
 czcionka_duża = pygame.font.Font('czcionki/Bitter-Bold.otf', 38)
 
 tło = pygame.image.load('grafiki/wallpaper.jpeg')
 tło = pygame.transform.rotozoom(tło, 0, 1.2)
-#screen.blit(tło, (0,0))
 
 nazwa = czcionka_duża.render('Hex Scrabble', True, (116, 82, 74))
-#screen.blit(nazwa, (1050, 50))
-
 runda = czcionka_średnia.render('Runda ', True, (102, 70, 62))
-#screen.blit(runda, (900, 110))
-
 wyświetl_gracza = czcionka_mała.render('Tura gracza ', True, (102, 70, 62))
-#screen.blit(wyświetl_gracza, (900, 150))
-
 litery = czcionka_mała.render('Twoje litery:', True, (116, 82, 74))
-#screen.blit(litery, (900, 210))
 
 #przycisk wymiany liter
 przycisk = pygame.image.load('grafiki/button.png')
 przycisk.set_colorkey((255, 255, 255))
 przycisk.convert_alpha()
-przycisk_rect = przycisk.get_rect(center = (960, 460))
 
 przycisk2 = pygame.image.load('grafiki/button2.png')
 przycisk2.set_colorkey((255, 255, 255))
 przycisk2.convert_alpha()
-przycisk2_rect = przycisk.get_rect(center = (960, 460))
 
-wymiana = czcionka_b_mała.render('WYMIANA', True, (241, 205, 191))
-wymiana_rect = wymiana.get_rect(center = przycisk_rect.center)
-#screen.blit(przycisk, przycisk_rect)
-#screen.blit(wymiana, wymiana_rect)
+przycisk_w_rect = przycisk.get_rect(center = (960, 460))
+przycisk_w2_rect = przycisk.get_rect(center = (960, 460))
+wymiana = czcionka_najmn.render('WYMIANA', True, (241, 205, 191))
+wymiana_rect = wymiana.get_rect(center = przycisk_w_rect.center)
+
+przycisk_k_rect = przycisk.get_rect(center = (1160, 460))
+przycisk_k2_rect = przycisk2.get_rect(center = (1160, 460))
+koniec = czcionka_najmn.render('KONIEC TURY', True, (241, 205, 191))
+koniec_rect = koniec.get_rect(center = przycisk_k_rect.center)
 
 """
-litery_gracza
-przycisk_wymiany
-
 wynik_gracza
 """
 heksagon = pygame.image.load('grafiki/hexagon1.png')
@@ -74,7 +66,7 @@ tekst = czcionka.render('A', True, (116, 82, 74))
 
 def inicjalizacja_gry():
 	global screen, czcionka, czcionka_b_mała, czcionka_duża, czcionka_mała, czcionka_średnia, tło
-	global nazwa, runda, wyświetl_gracza, litery, przycisk, przycisk_rect, przycisk2, przycisk2_rect
+	global nazwa, runda, wyświetl_gracza, litery, przycisk, przycisk_w_rect, przycisk2, przycisk_w2_rect
 	global wymiana, wymiana_rect, heksagon, heksagon_1_rect, heksagon_2, heksagon_2_rect
 	global heksagon_3, heksagon_3_rect, tekst
 
@@ -82,9 +74,10 @@ def inicjalizacja_gry():
 	screen.blit(nazwa, (1050, 50))
 	screen.blit(runda, (880, 110))
 	screen.blit(wyświetl_gracza, (880, 150))
-	screen.blit(litery, (880, 210))
-	screen.blit(przycisk, przycisk_rect)
+	screen.blit(przycisk, przycisk_w_rect)
 	screen.blit(wymiana, wymiana_rect)
+	screen.blit(przycisk, przycisk_k_rect)
+	screen.blit(koniec, koniec_rect)
 
 plansza = {}
 def stwórz_planszę(r):
@@ -129,7 +122,9 @@ def rysuj_planszę():
 	for x,y in plansza:
 		heksagon_rect = heksagon.get_rect(center = (pos_x, pos_y))
 		plansza[x,y] = list(plansza[x,y])
-		plansza[x,y].append(heksagon_rect)
+		if len(plansza[x,y]) < 2:
+			#chcemy zeby słownik powiększył się tylko przy pierwszym wołaniu funkcji
+			plansza[x,y].append(heksagon_rect)
 		screen.blit(heksagon, heksagon_rect) 
 
 		litera = (czcionka.render(plansza[x,y][0], True, (116, 82, 74)))
@@ -251,10 +246,10 @@ def ruch_gracza_realnego(aktualny_gracz):
 				pozycja_myszki = pygame.mouse.get_pos()
 
 				#sprawdzamy czy uzytkownik chce wymienić litery
-				if przycisk_rect.collidepoint(pozycja_myszki):
-					screen.blit(przycisk2, przycisk2_rect)
+				if przycisk_w_rect.collidepoint(pozycja_myszki):
+					screen.blit(przycisk2, przycisk_w2_rect)
 					screen.blit(wymiana, wymiana_rect)
-					#screen.blit(przycisk, przycisk_rect)
+					#screen.blit(przycisk, przycisk_w_rect)
 					#screen.blit(wymiana, wymiana_rect)
 					return None
 
@@ -312,7 +307,8 @@ def ruch_gracza_realnego(aktualny_gracz):
 							wstaw_literę(lit)
 							aktualizuj_liste_mozliwych_pol(listamozliwychpol)
 							lit = None
-					
+				#mozna dodac opcje backspace!!
+
 				#gracz może poruszać się po planszy używając strzałek
 				if event.key == pygame.K_UP:
 					if aktualny_heksagon:
@@ -382,6 +378,10 @@ def ruch_gracza_realnego(aktualny_gracz):
 		pygame.display.update()
 		zegar.tick(60)
 
+#rysuj_planszę()
+#print(plansza)
+
 if __name__ == '__main__':
 	inicjalizacja_gry()
 	ruch_gracza_realnego(1)
+
