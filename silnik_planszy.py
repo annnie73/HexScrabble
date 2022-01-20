@@ -24,8 +24,11 @@ nazwa = czcionka_duża.render('Hex Scrabble', True, (116, 82, 74))
 runda = czcionka_średnia.render('Runda ', True, (102, 70, 62))
 wyświetl_gracza = czcionka_mała.render('Tura gracza ', True, (102, 70, 62))
 litery = czcionka_mała.render('Twoje litery:', True, (116, 82, 74))
+wynik_gracza = czcionka_mała.render('Twój aktualny wynik to ', True, (102, 70, 62))
+litery_woreczek = czcionka_b_mała.render('Liczba liter pozostałych w woreczku:', True, (102, 70, 62))
 
-#przycisk wymiany liter
+
+#przyciski
 przycisk = pygame.image.load('grafiki/button.png')
 przycisk.set_colorkey((255, 255, 255))
 przycisk.convert_alpha()
@@ -34,19 +37,18 @@ przycisk2 = pygame.image.load('grafiki/button2.png')
 przycisk2.set_colorkey((255, 255, 255))
 przycisk2.convert_alpha()
 
+#przycisk wymiany liter
 przycisk_w_rect = przycisk.get_rect(center = (960, 460))
 przycisk_w2_rect = przycisk.get_rect(center = (960, 460))
 wymiana = czcionka_najmn.render('WYMIANA', True, (241, 205, 191))
 wymiana_rect = wymiana.get_rect(center = przycisk_w_rect.center)
 
+#przycisk końca tury
 przycisk_k_rect = przycisk.get_rect(center = (1160, 460))
 przycisk_k2_rect = przycisk2.get_rect(center = (1160, 460))
 koniec = czcionka_najmn.render('KONIEC TURY', True, (241, 205, 191))
 koniec_rect = koniec.get_rect(center = przycisk_k_rect.center)
 
-"""
-wynik_gracza
-"""
 heksagon = pygame.image.load('grafiki/hexagon1.png')
 heksagon.set_colorkey((255, 255, 255))
 heksagon.convert_alpha() #ogólnie zawsze convert przy uploadowaniu obrazu
@@ -62,13 +64,11 @@ heksagon_3.set_colorkey((255, 255, 255))
 heksagon_3.convert_alpha()
 heksagon_3_rect = heksagon_3.get_rect(topleft = (0,0))
 
-tekst = czcionka.render('A', True, (116, 82, 74))
-
 def inicjalizacja_gry():
 	global screen, czcionka, czcionka_b_mała, czcionka_duża, czcionka_mała, czcionka_średnia, tło
 	global nazwa, runda, wyświetl_gracza, litery, przycisk, przycisk_w_rect, przycisk2, przycisk_w2_rect
 	global wymiana, wymiana_rect, heksagon, heksagon_1_rect, heksagon_2, heksagon_2_rect
-	global heksagon_3, heksagon_3_rect, tekst
+	global heksagon_3, heksagon_3_rect, litery_woreczek, wynik_gracza
 
 	screen.blit(tło, (0,0))
 	screen.blit(nazwa, (1050, 50))
@@ -78,6 +78,8 @@ def inicjalizacja_gry():
 	screen.blit(wymiana, wymiana_rect)
 	screen.blit(przycisk, przycisk_k_rect)
 	screen.blit(koniec, koniec_rect)
+	screen.blit(wynik_gracza, (880, 550))
+	screen.blit(litery_woreczek, (880, 600))
 
 plansza = {}
 def stwórz_planszę(r):
@@ -102,7 +104,8 @@ def stwórz_planszę(r):
 		#po dojściu do połowy, rzędy zaczynają skracać się o 1
 		if y < 0:
 			start += 1
-
+	
+	return plansza
 stwórz_planszę(8)
 
 def rysuj_planszę():
@@ -235,6 +238,7 @@ def ruch_gracza_realnego(aktualny_gracz):
 
 	global aktualny_heksagon, pole, dopisuje_dostawkę, dostawka, lit
 	listamozliwychpol = [(x,y) for (x,y) in plansza if plansza[(x,y)][0] == ' ']
+	dostawka = []
 
 	while True:
 		for event in pygame.event.get():
@@ -307,6 +311,7 @@ def ruch_gracza_realnego(aktualny_gracz):
 							wstaw_literę(lit)
 							aktualizuj_liste_mozliwych_pol(listamozliwychpol)
 							lit = None
+
 				#mozna dodac opcje backspace!!
 
 				#gracz może poruszać się po planszy używając strzałek

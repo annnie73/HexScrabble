@@ -16,8 +16,9 @@ parser.set_defaults(plik_słownika = 'slownik.txt', plik_konfiguracyjny = 'hexsc
 args = parser.parse_args()
 
 #wyświetlamy planszę
-plansza = sp.stwórz_planszę(8)
-sp.rysuj_planszę()
+sp.stwórz_planszę(8)
+plansza = sp.rysuj_planszę()
+print(plansza)
 screen = sp.screen
 czcionka = sp.czcionka
 czcionka_mała = sp.czcionka_mała
@@ -240,17 +241,94 @@ def sprawdź_słowo(słowo: str):
 	if słowo.lower() in lista_ze_słownika(args.plik_słownika): return True
 	return False
 
-def sprawdź_czy_poprawne(dostawka): 
-	#sprawdza czy słowa poprawnie się nakładają i czy gracz ma litery potrzebne do utworzenia słowa
+# Sprawdzanie dostawki
+
+# Funkcje pomocnicze
+def sprawdź_wstecz_p(x,y, słowo):
 	global kopia_planszy
 
+	if kopia_planszy[(x-1, y)][0] == ' ':
+		#musimy jeszcze odwrócić słowo
+		return słowo[::-1] #mamy na razie sam początek słowa
+	
+	słowo += kopia_planszy[(x-1, y)][0]
+	return sprawdź_wstecz_p(x-1, y, słowo)
+		
+def sprawdź_wstecz_g(x,y, słowo):
+	global kopia_planszy
+
+	if kopia_planszy[x, y-1][0] == ' ':
+		return słowo[::-1] 
+	
+	słowo += kopia_planszy[(x, y-1)][0]
+	return sprawdź_wstecz_g(x, y-1, słowo)
+
+def sprawdź_wstecz_d(x,y, słowo):
+	global kopia_planszy
+
+	if kopia_planszy[(x-1, y+1)][0] == ' ':
+		return słowo[::-1]
+	
+	słowo += kopia_planszy[(x-1, y+1)][0]
+	return sprawdź_wstecz_d(x-1,y+1, słowo)
+
+def sprawdź_dalej_p(x,y, słowo):
+	global kopia_planszy
+
+	if kopia_planszy[(x+1, y)][0] == ' ':
+		return słowo 
+	
+	słowo += kopia_planszy[(x+1, y)][0]
+	return sprawdź_dalej_p(x+1, y, słowo)
+
+def sprawdź_dalej_g(x,y, słowo):
+	global kopia_planszy
+
+	if kopia_planszy[(x, y+1)][0] == ' ':
+		return słowo 
+
+	słowo += kopia_planszy[(x, y+1)][0]
+	return sprawdź_dalej_g(x, y+1, słowo)
+
+def sprawdź_dalej_d(x,y, słowo):
+	global kopia_planszy
+
+	if kopia_planszy[(x+1, y-1)][0] == ' ':
+		return słowo 
+
+	słowo += kopia_planszy[(x+1, y-1)][0]
+	return sprawdź_dalej_d(x+1,y-1, słowo)
+
+def sprawdź_czy_poprawne(dostawka): 
+	#sprawdza czy słowa poprawnie się nakładają i czy gracz ma litery potrzebne do utworzenia słowa
+
+	global kopia_planszy, aktualny_gracz
+	słowo = ''
+
 	x0, y0 = dostawka[0][1]
+
+	#osobno rozwazamy przypadek jednoliterowej dostawki
+	if len(dostawka) == 1:
+		if plansza[(x0-1, y0)][0] != ' ' or plansza[(x0+1, y0)][0] != ' ':
+			kierunek = 'p'
+		elif plansza[(x0, y0-1)][0] != ' ' or plansza[(x0, y0+1)][0] != ' ':
+			kierunek = 'g'
+		elif plansza[(x0-1,y0+1)][0] != ' ' or plansza[(x0+1,y0-1)][0] != ' ':
+			kierunek = 'd'
+		else:
+			komunikat = sp.czcionka_b_mała.render('Twoje słowo musi łączyć się z innymi', True, (102, 70, 62))
+			komunikat2 = sp.czcionka_b_mała.render('słowami na planszy.', True, (102, 70, 62))
+			screen.blit(komunikat, (880, 303))
+			screen.blit(komunikat2, (880, 330))
+			rysuj_planszę()
+			return False
+
 	#jeśli dla wszystkich liter y-współrzędna jest taka sama: kierunek słowa to poziomo - sortujemy dostawkę od po x
-	if all(dostawka[i][1][1] == y0 for i in range(len(dostawka))):
+	elif all(dostawka[i][1][1] == y0 for i in range(len(dostawka))):
 		dostawka = sorted(dostawka, key = lambda x: x[1][0])
 		kierunek = 'p'
 
-	#analogicznie z x-współrzędną - wtedy kierunek to do góry
+	#analogicznie z x-współrzędną - wtedy kierunek to do góry i sortujemy po y
 	elif all(dostawka[i][1][0] == x0 for i in range(len(dostawka))):
 		dostawka = sorted(dostawka, key = lambda x: x[1][1])
 		kierunek = 'g'
@@ -261,87 +339,176 @@ def sprawdź_czy_poprawne(dostawka):
 		if all(dostawka[j][1][1] < dostawka[i][1][1] for i in range(len(dostawka)-1) for j in range(i+1, len(dostawka))):
 			kierunek = 'd'
 		else: 
+			print('1')
+			print(dostawka)
             #coś jeszcze blitujemy
 			return False
 
-	#najpierw sprawdzamy czy litery dostawione przez uzytkownika sa w jednej linii i nie ma przerwy w srodku
-
-	#potem dla kazdej litery sprawdzamy jej sasiadow poza tymi w kierunku w ktorym ustawione jest slowo - idziemy w te strone tak dlugo az nie dojdziemy do pustego pola
-	#dla pierwszej sprawdzamy dodatkowo wstecz kierunek w ktorym ustawione jest slowo, zeby sprawdzic czy nie zostalo przedluzone jakies inne slowo
+	#mając zidentyfikowany kierunek, sprawdzamy czy gracz przedłuzał słowo z planszy, cofając się po odpowiednich współrzędnych
 	
-	for i in range(len(dostawka)):
-		litera = dostawka[i][0]
-		x,y = dostawka[i][1]
+	if kierunek == 'p':
+		słowo = sprawdź_wstecz_p(x0, y0, '')
 
-	#inicjujemy listy liter, których potrzebuje gracz, aby utworzyć dane słowo i słów, które tworzy
+	elif kierunek == 'g':
+		słowo = sprawdź_wstecz_g(x0, y0, '')
+
+	elif kierunek == 'd':
+		słowo = sprawdź_wstecz_d(x0, y0, '')
+
+	else:
+		print('2')
+		return False
+
+	#teraz sprawdzamy czy litery dostawione przez uzytkownika sa w jednej linii i nie ma przerw w środku, równolegle dodając litery które wstawił na planszę do listy liter, których potrzebuje, aby utworzyć dane słowo i przedłuzając słowo o odpowiednie litery
 	potrzebne_litery = []
-	poziomo = ''
-	góra = ''
-	dół = ''
+	x, y = x0, y0
 
-	x0, y0 = dostawka[0][1]
-	x1, y1 = dostawka[1][1]
+	if kierunek == 'p':
+		while x <= dostawka[-1][1][0]:
+			if kopia_planszy[(x, y)][0] == ' ':
+				for i in range(len(dostawka)):
+					if (x, y) == dostawka[i][1]:
+						słowo += dostawka[i][0]
+						potrzebne_litery.append(dostawka[i][0])
+						x += 1
+						break
+				else:
+					#jeśli plansza jest pusta, a w utworzonej przez gracza dostawce nie ma takich współrzędnych, oznacza to, ze w słowie jest przerwa
+
+					#znowu blitujemy błąd
+					print('3')
+					return False
+			else:
+				słowo += kopia_planszy[(x, y)][0]
+				x += 1
+
+	#analogicznie z dwoma pozostałymi kierunkami
+	elif kierunek == 'g':
+		while y <= dostawka[-1][1][1]:
+			if kopia_planszy[(x, y)][0] == ' ':
+				for i in range(len(dostawka)):
+					print(dostawka)
+					if (x, y) == dostawka[i][1]:
+						słowo += dostawka[i][0]
+						potrzebne_litery.append(dostawka[i][0])
+						y += 1
+						break
+				else:
+					#znowu blitujemy błąd
+					print('4')
+					return False
+			else:
+				słowo += kopia_planszy[(x, y)][0]
+				y += 1
+
+	elif kierunek == 'd':
+		while x <= dostawka[-1][1][0] and y >= dostawka[-1][1][1]:
+			if kopia_planszy[(x, y)][0] == ' ':
+				for i in range(len(dostawka)):
+					if (x, y) == dostawka[i][1]:
+						słowo += dostawka[i][0]
+						potrzebne_litery.append(dostawka[i][0])
+						x += 1
+						y -= 1
+						break
+				else:
+					#znowu blitujemy błąd
+					print('5')
+					return False
+			else:
+				słowo += kopia_planszy[(x, y)][0]
+				x += 1
+				y -= 1
+
+	#teraz sprawdzamy jeszcze czy za ostatnią dodaną literą nie ma kontynuacji słowa
+	(xo, yo) = dostawka[-1][1]
+	if kierunek == 'p':
+		słowo = sprawdź_dalej_p(xo, yo, słowo)
+
+	elif kierunek == 'g':
+		słowo = sprawdź_dalej_g(xo, yo, słowo)
 	
-	
+	elif kierunek == 'd':
+		słowo = sprawdź_dalej_d(xo, yo, słowo)
 
-	"""
-	if kopia_planszy[(x+1, y)] != ' ':
-			pass
-	if kopia_planszy[(x-1, y)] != ' ':
-			pass
-	if kopia_planszy[(x, y+1)] != ' ':
-			pass
-	if kopia_planszy[(x, y-1)] != ' ':
-			pass
-	if kopia_planszy[(x+1, y-1)] != ' ':
-			pass
-	if kopia_planszy[(x-1, y+1)] != ' ':
-			pass
-	"""
+	#teraz dla kazdej litery sprawdzamy jej sąsiadów poza tymi w kierunku, w którym ustawione jest słowo - jeśli pole nie jest puste, idziemy w tę stronę tak długo, az nie dojdziemy do pustego pola
 
-	#trzeba dodać zeby sprwdzalo czy nie ma przerw w slowach i inne kierunki
+	lista_słów = [słowo]
+
 	for i in range(len(dostawka)):
 		litera = dostawka[i][0]
-		x,y = dostawka[i][1]
+		x, y = dostawka[i][1]
+		if kierunek == 'p':
+			#jeśli główne słowo układane jest w prawo, to dla kazdej dostawionej litery sprawdzamy litery w obu kierunkach po skosie
+			if kopia_planszy[(x, y-1)] != ' ':
+				słowo1 = sprawdź_wstecz_g(x,y, '')
+			if kopia_planszy[(x, y+1)] != ' ':
+				if słowo1:
+					słowo1 += sprawdź_dalej_g(x,y, słowo1)
+				else: słowo1 = sprawdź_dalej_g(x,y, słowo1)
+			if słowo1:
+				lista_słów.append(słowo1)
 
-		#sprawdzamy poprawność współrzędnych
-		if (x,y) not in kopia_planszy:
-			#trza dodać blita wszędzie
-			return False
+			if kopia_planszy[(x+1, y-1)] != ' ':
+				słowo2 = sprawdź_wstecz_d(x,y, '')
+			if kopia_planszy[(x-1, y+1)] != ' ':
+				if słowo2:
+					słowo2 += sprawdź_dalej_d(x,y, słowo2)
+				else: słowo2 = sprawdź_dalej_d(x,y, słowo2)
+			if słowo2:
+				lista_słów.append(słowo2)
 
-		elif kopia_planszy[(x,y)] == ' ':
-			#jeśli nic nie ma na tym miejscu, dana litera musi być w zbiorze gracza
-			potrzebne_litery.append(litera.upper())
+		elif kierunek == 'g':
+			#analogicznie w przypadku pozostałych kierunków
+			if kopia_planszy[(x-1, y)] != ' ':
+				słowo1 = sprawdź_wstecz_p(x,y,'')
+			if kopia_planszy[(x+1, y)] != ' ':
+				if słowo1:
+					słowo1 += sprawdź_dalej_p(x,y, słowo1)
+				else: słowo1 = sprawdź_dalej_p(x,y, słowo1)
+			if słowo1:
+				lista_słów.append(słowo1)
 
-		elif kopia_planszy[(x,y)] != litera.upper():
-			print('Litery nie nakładają się poprawnie. Wybierz inne słowo. ')
-			return False
+			if kopia_planszy[(x+1, y-1)] != ' ':
+				słowo2 = sprawdź_wstecz_d(x,y,'')
+			if kopia_planszy[(x-1, y+1)] != ' ':
+				if słowo2:
+					słowo2 += sprawdź_dalej_d(x,y, słowo2)
+				else: słowo2 = sprawdź_dalej_d(x,y, słowo2)
+			if słowo2:
+				lista_słów.append(słowo2)
 		
-		#dla kazdego pola sprawdzamy jego sasiadow
-		if kopia_planszy[(x+1, y)] != ' ':
-			pass
-		if kopia_planszy[(x-1, y)] != ' ':
-			pass
-		if kopia_planszy[(x, y+1)] != ' ':
-			pass
-		if kopia_planszy[(x, y-1)] != ' ':
-			pass
-		if kopia_planszy[(x+1, y-1)] != ' ':
-			pass
-		if kopia_planszy[(x-1, y+1)] != ' ':
-			pass
+		elif kierunek == 'd':
+			if kopia_planszy[(x-1, y)] != ' ':
+				słowo1 = sprawdź_wstecz_p(x,y,'')
+			if kopia_planszy[(x+1, y)] != ' ':
+				if słowo1:
+					słowo1 += sprawdź_dalej_p(x,y, słowo1)
+				else: słowo1 = sprawdź_dalej_p(x,y, słowo1)
+			if słowo1:
+				lista_słów.append(słowo1)
 
+			if kopia_planszy[(x, y-1)] != ' ':
+				słowo2 = sprawdź_wstecz_g(x,y,'')
+			if kopia_planszy[(x, y+1)] != ' ':
+				if słowo2:
+					słowo2 += sprawdź_dalej_g(x,y, słowo1)
+				else: słowo2 = sprawdź_dalej_g(x,y, słowo1)
+			if słowo2:
+				lista_słów.append(słowo2)
+			
+	#na końcu sprawdzamy czy słowo łączy się z jakimś słowem na planszy i dla kazdego z utworzonych słów sprawdzamy czy jest ono w liście ze słownika
+	for słowo in lista_słów:
+		if len(potrzebne_litery) == len(słowo) and (not all(plansza[klucz][0] == ' ' for klucz in plansza)):
+			print(potrzebne_litery)
+			print('Twoje słowo musi łączyć się ze słowem będącym już na planszy. ')
+			return False
 
-
-	#sprawdzamy, czy słowo gracza łączy się ze słowami będącymi już na planszy
-	if len(potrzebne_litery) == len(dostawka) and (not all(plansza[klucz] == ' ' for klucz in plansza)):
-		print('Twoje słowo musi łączyć się ze słowem będącym już na planszy. ')
-		return False
-
-	#sprawdzamy, czy gracz wykorzystał chociaż jedną literę ze swojego zbioru
-	if len(potrzebne_litery) < 1:
-		print('Musisz wykorzystać chociaż jedną literę ze swojego zbioru. ')
-		return False
+		if not słowo.lower() in lista_ze_słownika(args.plik_słownika): 
+			print(słowo.lower())
+			#blitujemy jakiś komunikat
+			print('upsi')
+			return False
 
 	#sprawdzamy, czy gracz ma w swoim zbiorze potrzebne płytki
 	if not można_utworzyć(potrzebne_litery, gracze[aktualny_gracz][1]):
@@ -350,7 +517,7 @@ def sprawdź_czy_poprawne(dostawka):
 
 	#upewniamy się, że pierwsze słowo postawione na planszy przechodzi przez punkt 0,0
 	if all(plansza[klucz] == ' ' for klucz in plansza) and (not sprawdź_pierwszą_współrzędną(dostawka)):
-		print('Pierwsze słowo na planszy musi przechodzić przez punkt 0,0. ')
+		print('Pierwsze słowo na planszy musi przechodzić przez punkt 0,0.')
 		return False
 	
 	return potrzebne_litery
@@ -381,9 +548,10 @@ def punkty(plansza, dostawka) -> int:
 		return count
 	raise Exception('Niepoprawna dostawka.')
 
-def wstaw(plansza, dostawka) -> bool:
+def wstaw(dostawka) -> bool:
 	#wstawia dostawkę na planszę. Zwraca True gdy udało się, False gdy dostawka nie jest prawidłowa.
 
+	global plansza
 	#jeśli dostawka była prawidłowa, funkcja sprawdź_czy_poprawne zwraca listę liter do usunięcia ze zbioru gracza
 	potrzebne_litery = sprawdź_czy_poprawne(dostawka)
 	if not potrzebne_litery: return False
@@ -398,10 +566,10 @@ def wstaw(plansza, dostawka) -> bool:
 		litera = krotka[0]
 		współrzędne = krotka[1]
 
-		for klucz in plansza:
-			if klucz == współrzędne:
-					plansza[klucz] = litera
-					continue #można spróbować z break
+		for (x,y) in plansza:
+			if (x,y) == współrzędne:
+					plansza[(x,y)][0] = litera
+					continue
 	return True
 
 
@@ -483,23 +651,34 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 			sp.rysuj_planszę()
 			#print('Liczba liter pozostałych w woreczku to ' + str(len(woreczek)) + '.')
 			
+
 			#ruch gracza realnego
 			if aktualny_gracz <= len(args.nazwy_graczy_realnych) - 1: #zmienimy, zeby mogl byc najpierw komputer
+
 				global kopia_planszy
 				kopia_planszy = copy.deepcopy(plansza)
+
 				sp.rysuj_planszę()
 				wyświetl_litery(aktualny_gracz)
-				dostawka = sp.ruch_gracza_realnego(aktualny_gracz)
-				if dostawka:#sp.ruch_gracza_realnego(aktualny_gracz):
-					if wstaw(plansza, dostawka):
-						sp.rysuj_planszę() 
-						#dokończyć - przede wszystkim punkty i nowe literki
-				else:
-					wymiana(aktualny_gracz)
-					screen.blit(numer, (988, 110))
-					screen.blit(imię, (1060, 150))
-					wyświetl_litery(aktualny_gracz)
-					koniec_tury(aktualny_gracz)
+				while True:
+					dostawka = sp.ruch_gracza_realnego(aktualny_gracz)
+					if dostawka:
+						if wstaw(dostawka):
+							sp.inicjalizacja_gry()
+							sp.rysuj_planszę()
+							#dokończyć - przede wszystkim punkty i nowe literki
+							koniec_tury(aktualny_gracz)
+							break
+							
+						else: 
+							continue
+					else:
+						wymiana(aktualny_gracz)
+						screen.blit(numer, (988, 110))
+						screen.blit(imię, (1060, 150))
+						wyświetl_litery(aktualny_gracz)
+						koniec_tury(aktualny_gracz)
+						break
 					
 					
 					
@@ -511,43 +690,9 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 
 				#print('\nZbiór liter gracza ' + gracze[aktualny_gracz][0] + ': ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
 
-				"""
-					count = 1
-					while count <= 6:
-						słowo_gracza = input('Podaj słowo, które chcesz zagrać: ')
-						if not sprawdź_słowo(słowo_gracza): 
-							print('Twoje słowo jest nieprawidłowe.')
-							count += 1
-							continue
-
-						współrzędne = input('Podaj współrzędne pierwszej litery: ')
-						if sprawdź_współrzędne(współrzędne): 
-							współrzędne = sprawdź_współrzędne(współrzędne)
-						else: 
-							print('Te współrzędne są nieprawidłowe.')
-							count += 1
-							continue
-
-						kierunek = input('Podaj kierunek, w którym chcesz ustawić słowo - poziomo (p), w górę (g) lub w dół (d): ')
-						if stwórz_dostawkę(słowo_gracza, współrzędne, kierunek):
-							dostawka = stwórz_dostawkę(słowo_gracza, współrzędne, kierunek)
-							if wstaw(plansza, dostawka):
-								print('\n', plansza)
-								print('\nSłowo zostało ustawione. \nTwój aktualny zbiór liter to: ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
-								break
-							else: 
-								count += 1
-								continue
-						else:
-							print('Ten kierunek nie jest poprawny.')
-							count += 1
-							continue
-					else:
-						print('Podałeś nieprawidłowe dane za dużo razy. Twoja tura przepadła. ')
-
 				#wyświetlamy aktualny wynik gracza
 				print('\n' + gracze[aktualny_gracz][0] + ', Twój aktualny wynik to ' + str(gracze[aktualny_gracz][2]) + '.')
-				"""
+				
 			#else:
 				#ruch gracza sztuczego
 
