@@ -13,6 +13,7 @@ zegar = pygame.time.Clock()
 czcionka = pygame.font.Font('czcionki/Bitter-Regular.otf', 32)
 czcionka_b_mała = pygame.font.Font('czcionki/Bitter-Regular.otf', 22)
 czcionka_mała = pygame.font.Font('czcionki/Bitter-Regular.otf', 30)
+czcionka_idealna = pygame.font.Font('czcionki/Bitter-Bold.otf', 25)
 czcionka_najmn = pygame.font.Font('czcionki/Bitter-Regular.otf', 20)
 czcionka_średnia = pygame.font.Font('czcionki/Bitter-Bold.otf', 30)
 czcionka_duża = pygame.font.Font('czcionki/Bitter-Bold.otf', 38)
@@ -24,7 +25,7 @@ nazwa = czcionka_duża.render('Hex Scrabble', True, (116, 82, 74))
 runda = czcionka_średnia.render('Runda ', True, (102, 70, 62))
 wyświetl_gracza = czcionka_mała.render('Tura gracza ', True, (102, 70, 62))
 litery = czcionka_mała.render('Twoje litery:', True, (116, 82, 74))
-wynik_gracza = czcionka_mała.render('Twój aktualny wynik to ', True, (102, 70, 62))
+wynik_gracza = czcionka_idealna.render('Twój aktualny wynik to ', True, (102, 70, 62))
 litery_woreczek = czcionka_b_mała.render('Liczba liter pozostałych w woreczku:', True, (102, 70, 62))
 
 
@@ -38,14 +39,14 @@ przycisk2.set_colorkey((255, 255, 255))
 przycisk2.convert_alpha()
 
 #przycisk wymiany liter
-przycisk_w_rect = przycisk.get_rect(center = (960, 460))
-przycisk_w2_rect = przycisk.get_rect(center = (960, 460))
+przycisk_w_rect = przycisk.get_rect(center = (960, 500))
+przycisk_w2_rect = przycisk.get_rect(center = (960, 500))
 wymiana = czcionka_najmn.render('WYMIANA', True, (241, 205, 191))
 wymiana_rect = wymiana.get_rect(center = przycisk_w_rect.center)
 
 #przycisk końca tury
-przycisk_k_rect = przycisk.get_rect(center = (1160, 460))
-przycisk_k2_rect = przycisk2.get_rect(center = (1160, 460))
+przycisk_k_rect = przycisk.get_rect(center = (1160, 500))
+przycisk_k2_rect = przycisk2.get_rect(center = (1160, 500))
 koniec = czcionka_najmn.render('KONIEC TURY', True, (241, 205, 191))
 koniec_rect = koniec.get_rect(center = przycisk_k_rect.center)
 
@@ -71,15 +72,15 @@ def inicjalizacja_gry():
 	global heksagon_3, heksagon_3_rect, litery_woreczek, wynik_gracza
 
 	screen.blit(tło, (0,0))
-	screen.blit(nazwa, (1050, 50))
+	screen.blit(nazwa, (1030, 40))
 	screen.blit(runda, (880, 110))
 	screen.blit(wyświetl_gracza, (880, 150))
 	screen.blit(przycisk, przycisk_w_rect)
 	screen.blit(wymiana, wymiana_rect)
 	screen.blit(przycisk, przycisk_k_rect)
 	screen.blit(koniec, koniec_rect)
-	screen.blit(wynik_gracza, (880, 550))
-	screen.blit(litery_woreczek, (880, 600))
+	screen.blit(wynik_gracza, (880, 600))
+	screen.blit(litery_woreczek, (880, 650))
 
 plansza = {}
 def stwórz_planszę(r):

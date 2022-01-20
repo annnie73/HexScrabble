@@ -18,7 +18,6 @@ args = parser.parse_args()
 #wyświetlamy planszę
 sp.stwórz_planszę(8)
 plansza = sp.rysuj_planszę()
-print(plansza)
 screen = sp.screen
 czcionka = sp.czcionka
 czcionka_mała = sp.czcionka_mała
@@ -124,8 +123,8 @@ def wymiana(aktualny_gracz):
 	lista_płytek = wyświetl_litery(aktualny_gracz)
 	instrukcja1 = sp.czcionka_b_mała.render('Kliknij myszką na litery, które chcesz wymienić,', True, (102, 70, 62))
 	instrukcja2 = sp.czcionka_b_mała.render('a następnie naciśnij ENTER', True, (102, 70, 62))
-	screen.blit(instrukcja1, (880, 303))
-	screen.blit(instrukcja2, (880, 330))
+	screen.blit(instrukcja1, (880, 338))
+	screen.blit(instrukcja2, (880, 365))
 
 	litery_do_wymiany = []
 	
@@ -163,7 +162,7 @@ def wymiana(aktualny_gracz):
 					napis2 = czcionka_mała.render('Twój aktualny zbiór liter:', True, (116, 82, 74))
 					screen.blit(napis2, (880, 210))
 					komunikat = sp.czcionka_b_mała.render('Litery zostały wymienione.', True, (102, 70, 62))
-					screen.blit(komunikat, (880, 303))
+					screen.blit(komunikat, (880, 323))
 					return True
 		pygame.display.update()
 		sp.zegar.tick(60)
@@ -215,7 +214,7 @@ def stwórz_dostawkę(słowo: str, pierwsza_współrzędna: tuple, kierunek: str
 		return False
 	return list(zip(słowo, współrzędne))
 
-print(stwórz_dostawkę('kot', (0,0), 'p'))
+#print(stwórz_dostawkę('kot', (0,0), 'p'))
 
 
 def sprawdź_współrzędne(współrzędne: str):
@@ -318,9 +317,9 @@ def sprawdź_czy_poprawne(dostawka):
 		else:
 			komunikat = sp.czcionka_b_mała.render('Twoje słowo musi łączyć się z innymi', True, (102, 70, 62))
 			komunikat2 = sp.czcionka_b_mała.render('słowami na planszy.', True, (102, 70, 62))
-			screen.blit(komunikat, (880, 303))
-			screen.blit(komunikat2, (880, 330))
-			rysuj_planszę()
+			screen.blit(komunikat, (880, 338))
+			screen.blit(komunikat2, (880, 365))
+			sp.rysuj_planszę()
 			return False
 
 	#jeśli dla wszystkich liter y-współrzędna jest taka sama: kierunek słowa to poziomo - sortujemy dostawkę od po x
@@ -341,7 +340,9 @@ def sprawdź_czy_poprawne(dostawka):
 		else: 
 			print('1')
 			print(dostawka)
-            #coś jeszcze blitujemy
+			komunikat = sp.czcionka_b_mała.render('Twoje litery muszą leżeć w jednej linii.', True, (102, 70, 62))
+			screen.blit(komunikat, (880, 338))
+			sp.rysuj_planszę()
 			return False
 
 	#mając zidentyfikowany kierunek, sprawdzamy czy gracz przedłuzał słowo z planszy, cofając się po odpowiednich współrzędnych
@@ -356,8 +357,7 @@ def sprawdź_czy_poprawne(dostawka):
 		słowo = sprawdź_wstecz_d(x0, y0, '')
 
 	else:
-		print('2')
-		return False
+		raise Exception
 
 	#teraz sprawdzamy czy litery dostawione przez uzytkownika sa w jednej linii i nie ma przerw w środku, równolegle dodając litery które wstawił na planszę do listy liter, których potrzebuje, aby utworzyć dane słowo i przedłuzając słowo o odpowiednie litery
 	potrzebne_litery = []
@@ -375,8 +375,9 @@ def sprawdź_czy_poprawne(dostawka):
 				else:
 					#jeśli plansza jest pusta, a w utworzonej przez gracza dostawce nie ma takich współrzędnych, oznacza to, ze w słowie jest przerwa
 
-					#znowu blitujemy błąd
-					print('3')
+					komunikat = sp.czcionka_b_mała.render('W Twoim słowie nie może być przerw.', True, (102, 70, 62))
+					screen.blit(komunikat, (880, 338))
+					sp.rysuj_planszę()
 					return False
 			else:
 				słowo += kopia_planszy[(x, y)][0]
@@ -394,8 +395,9 @@ def sprawdź_czy_poprawne(dostawka):
 						y += 1
 						break
 				else:
-					#znowu blitujemy błąd
-					print('4')
+					komunikat = sp.czcionka_b_mała.render('W Twoim słowie nie może być przerw.', True, (102, 70, 62))
+					screen.blit(komunikat, (880, 338))
+					sp.rysuj_planszę()
 					return False
 			else:
 				słowo += kopia_planszy[(x, y)][0]
@@ -412,8 +414,9 @@ def sprawdź_czy_poprawne(dostawka):
 						y -= 1
 						break
 				else:
-					#znowu blitujemy błąd
-					print('5')
+					komunikat = sp.czcionka_b_mała.render('W Twoim słowie nie może być przerw.', True, (102, 70, 62))
+					screen.blit(komunikat, (880, 338))
+					sp.rysuj_planszę()
 					return False
 			else:
 				słowo += kopia_planszy[(x, y)][0]
@@ -440,6 +443,7 @@ def sprawdź_czy_poprawne(dostawka):
 		x, y = dostawka[i][1]
 		if kierunek == 'p':
 			#jeśli główne słowo układane jest w prawo, to dla kazdej dostawionej litery sprawdzamy litery w obu kierunkach po skosie
+
 			if kopia_planszy[(x, y-1)] != ' ':
 				słowo1 = sprawdź_wstecz_g(x,y, '')
 			if kopia_planszy[(x, y+1)] != ' ':
@@ -500,27 +504,39 @@ def sprawdź_czy_poprawne(dostawka):
 	#na końcu sprawdzamy czy słowo łączy się z jakimś słowem na planszy i dla kazdego z utworzonych słów sprawdzamy czy jest ono w liście ze słownika
 	for słowo in lista_słów:
 		if len(potrzebne_litery) == len(słowo) and (not all(plansza[klucz][0] == ' ' for klucz in plansza)):
-			print(potrzebne_litery)
-			print('Twoje słowo musi łączyć się ze słowem będącym już na planszy. ')
+			komunikat = sp.czcionka_b_mała.render('Twoje słowo musi łączyć się z innymi', True, (102, 70, 62))
+			komunikat2 = sp.czcionka_b_mała.render('słowami na planszy.', True, (102, 70, 62))
+			screen.blit(komunikat, (880, 338))
+			screen.blit(komunikat2, (880, 365))
+			sp.rysuj_planszę()
 			return False
 
 		if not słowo.lower() in lista_ze_słownika(args.plik_słownika): 
 			print(słowo.lower())
-			#blitujemy jakiś komunikat
-			print('upsi')
+			komunikat = sp.czcionka_b_mała.render('Tego słowa nie ma w słowniku.', True, (102, 70, 62))
+			screen.blit(komunikat, (880, 338))
+			sp.rysuj_planszę()
 			return False
 
 	#sprawdzamy, czy gracz ma w swoim zbiorze potrzebne płytki
 	if not można_utworzyć(potrzebne_litery, gracze[aktualny_gracz][1]):
-		print('Nie masz liter potrzebnych do utworzenia tego słowa. ')
+		komunikat = sp.czcionka_b_mała.render('Nie masz liter potrzebnych do utworzenia', True, (102, 70, 62))
+		komunikat2 = sp.czcionka_b_mała.render('tego słowa.', True, (102, 70, 62))
+		screen.blit(komunikat, (880, 338))
+		screen.blit(komunikat2, (880, 365))
+		sp.rysuj_planszę()
 		return False
 
 	#upewniamy się, że pierwsze słowo postawione na planszy przechodzi przez punkt 0,0
 	if all(plansza[klucz] == ' ' for klucz in plansza) and (not sprawdź_pierwszą_współrzędną(dostawka)):
-		print('Pierwsze słowo na planszy musi przechodzić przez punkt 0,0.')
+		komunikat = sp.czcionka_b_mała.render('Pierwsze słowo na planszy musi', True, (102, 70, 62))
+		komunikat2 = sp.czcionka_b_mała.render('przechodzić przez jej środek.', True, (102, 70, 62))
+		screen.blit(komunikat, (880, 338))
+		screen.blit(komunikat2, (880, 365))
+		sp.rysuj_planszę()
 		return False
 	
-	return potrzebne_litery
+	return lista_słów, potrzebne_litery
 
 def wynik(słowo):
 	count = 0
@@ -630,7 +646,7 @@ def utwórz_słowa(zbiór_gracza, litera_z_planszy, słownik, wymagane_litery = 
 	
 	return sorted(słowa, key = lambda x: x[1], reverse = True)
 
-print(utwórz_słowa([('N', 1), ('A', 1), ('Ł', 3), ('E', 1), ('Y', 2), ('G', 3), ('L', 2)], 'b', 'slownik.txt'))
+#print(utwórz_słowa([('N', 1), ('A', 1), ('Ł', 3), ('E', 1), ('Y', 2), ('G', 3), ('L', 2)], 'b', 'slownik.txt'))
 
 #print(wstaw(plansza, stwórz_dostawkę('kot', (0,0), 'p')))
 #print(plansza)
@@ -648,25 +664,37 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 			screen.blit(numer, (988, 110))
 			imię = czcionka_mała.render(gracze[aktualny_gracz][0], True, (102, 70, 62))
 			screen.blit(imię, (1060, 150))
+			worczek_lit = sp.czcionka_b_mała.render(str(len(woreczek)), True, (102, 70, 62))
+			screen.blit(worczek_lit, (1273, 650))
+			punktacja = sp.czcionka_idealna.render(str(gracze[aktualny_gracz][2]), True, (102, 70, 62))
+			screen.blit(punktacja, (1185, 600))
 			sp.rysuj_planszę()
-			#print('Liczba liter pozostałych w woreczku to ' + str(len(woreczek)) + '.')
-			
-
+	
 			#ruch gracza realnego
 			if aktualny_gracz <= len(args.nazwy_graczy_realnych) - 1: #zmienimy, zeby mogl byc najpierw komputer
 
 				global kopia_planszy
 				kopia_planszy = copy.deepcopy(plansza)
 
-				sp.rysuj_planszę()
 				wyświetl_litery(aktualny_gracz)
 				while True:
+					sp.rysuj_planszę()
 					dostawka = sp.ruch_gracza_realnego(aktualny_gracz)
 					if dostawka:
 						if wstaw(dostawka):
 							sp.inicjalizacja_gry()
 							sp.rysuj_planszę()
-							#dokończyć - przede wszystkim punkty i nowe literki
+							screen.blit(numer, (988, 110))
+							screen.blit(imię, (1060, 150))
+							wyświetl_litery(aktualny_gracz)
+							napis1 = sp.czcionka_b_mała.render('Twoje słowo zostało ustawione.', True, (102, 70, 62))
+							screen.blit(napis1, (880, 338))
+							napis2 = czcionka_mała.render('Twój aktualny zbiór liter:', True, (116, 82, 74))
+							screen.blit(napis2, (880, 210))
+							worczek_lit = sp.czcionka_b_mała.render(str(len(woreczek)), True, (102, 70, 62))
+							screen.blit(worczek_lit, (1273, 650))
+							punktacja = sp.czcionka_idealna.render(str(gracze[aktualny_gracz][2]), True, (102, 70, 62))
+							screen.blit(punktacja, (1185, 600))
 							koniec_tury(aktualny_gracz)
 							break
 							
@@ -687,8 +715,6 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 							#blitujemy punkty gracza
 							#przechodzimy do kolejnego gracza
 							#print('\nSłowo zostało ustawione. \nTwój aktualny zbiór liter to: ' + #zbiór_gracza_str(gracze[aktualny_gracz][1]))
-
-				#print('\nZbiór liter gracza ' + gracze[aktualny_gracz][0] + ': ' + zbiór_gracza_str(gracze[aktualny_gracz][1]))
 
 				#wyświetlamy aktualny wynik gracza
 				print('\n' + gracze[aktualny_gracz][0] + ', Twój aktualny wynik to ' + str(gracze[aktualny_gracz][2]) + '.')
