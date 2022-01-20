@@ -276,7 +276,7 @@ def ruch_gracza_realnego(aktualny_gracz):
 				if aktualny_heksagon:
 
 					if not dopisuje_dostawkę:
-						kopia_planszy = copy.deepcopy(plansza)
+						#kopia_planszy = copy.deepcopy(plansza)
 						dopisuje_dostawke = True
 
 					klawisze = pygame.key.get_pressed()

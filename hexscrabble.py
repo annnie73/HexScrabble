@@ -1,4 +1,5 @@
-import argparse, re, pygame
+import argparse, re, pygame, copy
+from xml.dom.expatbuilder import parseFragmentString
 from random import shuffle
 import silnik_planszy as sp
 
@@ -240,30 +241,100 @@ def sprawdź_słowo(słowo: str):
 	return False
 
 def sprawdź_czy_poprawne(dostawka): 
-	#inicjujemy listę liter, których potrzebuje gracz, aby utworzyć dane słowo
-	potrzebne_litery = []
+	#sprawdza czy słowa poprawnie się nakładają i czy gracz ma litery potrzebne do utworzenia słowa
+	global kopia_planszy
 
+	x0, y0 = dostawka[0][1]
+	#jeśli dla wszystkich liter y-współrzędna jest taka sama: kierunek słowa to poziomo - sortujemy dostawkę od po x
+	if all(dostawka[i][1][1] == y0 for i in range(len(dostawka))):
+		dostawka = sorted(dostawka, key = lambda x: x[1][0])
+		kierunek = 'p'
+
+	#analogicznie z x-współrzędną - wtedy kierunek to do góry
+	elif all(dostawka[i][1][0] == x0 for i in range(len(dostawka))):
+		dostawka = sorted(dostawka, key = lambda x: x[1][1])
+		kierunek = 'g'
+
+	#jeśli nie, kierunek powinien być do dołu - sortujemy po x i sprawdzamy czy y się zmniejszają
+	else:
+		dostawka = sorted(dostawka, key = lambda x: x[1][0])
+		if all(dostawka[j][1][1] < dostawka[i][1][1] for i in range(len(dostawka)-1) for j in range(i+1, len(dostawka))):
+			kierunek = 'd'
+		else: 
+            #coś jeszcze blitujemy
+			return False
+
+	#najpierw sprawdzamy czy litery dostawione przez uzytkownika sa w jednej linii i nie ma przerwy w srodku
+
+	#potem dla kazdej litery sprawdzamy jej sasiadow poza tymi w kierunku w ktorym ustawione jest slowo - idziemy w te strone tak dlugo az nie dojdziemy do pustego pola
+	#dla pierwszej sprawdzamy dodatkowo wstecz kierunek w ktorym ustawione jest slowo, zeby sprawdzic czy nie zostalo przedluzone jakies inne slowo
+	
 	for i in range(len(dostawka)):
 		litera = dostawka[i][0]
-		współrzędne = dostawka[i][1]
+		x,y = dostawka[i][1]
+
+	#inicjujemy listy liter, których potrzebuje gracz, aby utworzyć dane słowo i słów, które tworzy
+	potrzebne_litery = []
+	poziomo = ''
+	góra = ''
+	dół = ''
+
+	x0, y0 = dostawka[0][1]
+	x1, y1 = dostawka[1][1]
+	
+	
+
+	"""
+	if kopia_planszy[(x+1, y)] != ' ':
+			pass
+	if kopia_planszy[(x-1, y)] != ' ':
+			pass
+	if kopia_planszy[(x, y+1)] != ' ':
+			pass
+	if kopia_planszy[(x, y-1)] != ' ':
+			pass
+	if kopia_planszy[(x+1, y-1)] != ' ':
+			pass
+	if kopia_planszy[(x-1, y+1)] != ' ':
+			pass
+	"""
+
+	#trzeba dodać zeby sprwdzalo czy nie ma przerw w slowach i inne kierunki
+	for i in range(len(dostawka)):
+		litera = dostawka[i][0]
+		x,y = dostawka[i][1]
 
 		#sprawdzamy poprawność współrzędnych
-
-		if współrzędne not in plansza:
+		if (x,y) not in kopia_planszy:
 			#trza dodać blita wszędzie
 			return False
 
-		elif plansza[współrzędne] == ' ':
+		elif kopia_planszy[(x,y)] == ' ':
 			#jeśli nic nie ma na tym miejscu, dana litera musi być w zbiorze gracza
 			potrzebne_litery.append(litera.upper())
 
-		elif plansza[współrzędne] != litera.upper():
+		elif kopia_planszy[(x,y)] != litera.upper():
 			print('Litery nie nakładają się poprawnie. Wybierz inne słowo. ')
 			return False
+		
+		#dla kazdego pola sprawdzamy jego sasiadow
+		if kopia_planszy[(x+1, y)] != ' ':
+			pass
+		if kopia_planszy[(x-1, y)] != ' ':
+			pass
+		if kopia_planszy[(x, y+1)] != ' ':
+			pass
+		if kopia_planszy[(x, y-1)] != ' ':
+			pass
+		if kopia_planszy[(x+1, y-1)] != ' ':
+			pass
+		if kopia_planszy[(x-1, y+1)] != ' ':
+			pass
+
+
 
 	#sprawdzamy, czy słowo gracza łączy się ze słowami będącymi już na planszy
 	if len(potrzebne_litery) == len(dostawka) and (not all(plansza[klucz] == ' ' for klucz in plansza)):
-	#if (numer_rundy != 1 or (numer_rundy == 1 and aktualny_gracz != 0)) and current_board_ltr == " " * len(self.word):
 		print('Twoje słowo musi łączyć się ze słowem będącym już na planszy. ')
 		return False
 
@@ -414,6 +485,8 @@ def rozgrywka(gracze: dict, konfiguracja: list):
 			
 			#ruch gracza realnego
 			if aktualny_gracz <= len(args.nazwy_graczy_realnych) - 1: #zmienimy, zeby mogl byc najpierw komputer
+				global kopia_planszy
+				kopia_planszy = copy.deepcopy(plansza)
 				sp.rysuj_planszę()
 				wyświetl_litery(aktualny_gracz)
 				dostawka = sp.ruch_gracza_realnego(aktualny_gracz)
