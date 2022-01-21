@@ -294,6 +294,8 @@ def ruch_gracza_realnego(aktualny_gracz):
 						lit = 'Ę'
 					elif klawisze[pygame.K_l] and klawisze[pygame.K_RALT]:
 						lit = 'Ł'
+					elif klawisze[pygame.K_n] and klawisze[pygame.K_RALT]:
+						lit = 'Ń'
 					elif klawisze[pygame.K_o] and klawisze[pygame.K_RALT]:
 						lit = 'Ó'
 					elif klawisze[pygame.K_s] and klawisze[pygame.K_RALT]:

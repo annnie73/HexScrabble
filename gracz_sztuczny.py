@@ -1,116 +1,6 @@
 
-import argparse
+import argparse, re, copy
 from random import shuffle
-import re
-import copy
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument('-s', '--liczba_graczy_sztucznych', type = int, nargs = '?', help = 'Liczba graczy sztucznych')
-parser.add_argument('-S', '--plik_słownika', type = str, nargs = '?', help = 'Plik słownika słów')
-parser.add_argument('-c', '--plik_konfiguracyjny', type = str, nargs = '?', help = 'Plik konfiguracyjny')
-parser.add_argument('nazwy_graczy_realnych', type = str, nargs = '*', help = 'Nazwy graczy realnych oddzielone spacją')
-
-#ustalamy domyślne plik ze słownikiem i plik konfiguracyjny
-parser.set_defaults(plik_słownika = 'slownik.txt', plik_konfiguracyjny = 'hexscrabble.cnf')
-args = parser.parse_args()
-
-#wczytujemy zmienne lettercnt i letterfreq z pliku konfiguracyjnego
-konfiguracja = compile(open(args.plik_konfiguracyjny).read(), 'string', 'exec')
-eval(konfiguracja)
-
-aktualny_gracz = 0
-
-woreczek = []
-
-def dodaj_do_woreczka(litera, ilość):
-	#dodaje do woreczka podaną ilość danej płytki
-	for i in range(ilość):
-		woreczek.append(litera)
-
-def początkowy_woreczek():
-	#dodaje początkowy zbiór płytek do woreczka
-	for i in range(len(letterfreq)):
-		dodaj_do_woreczka((letterfreq[i][0],letterfreq[i][1]), letterfreq[i][2])
-	shuffle(woreczek)
-początkowy_woreczek()
-
-def dodaj_do_zbioru(zbiór_gracza):
-	#bierze płytkę z woreczka i dodaje do zbioru liter gracza
-	zbiór_gracza.append(woreczek.pop())
-
-def początkowy_zbiór_gracza():
-	#inicjuje zbiór liter gracza i daje do niego początkowe 7 liter
-	zbiór = []
-	for i in range(lettercnt):
-		dodaj_do_zbioru(zbiór)
-	return zbiór
-
-def zbiór_gracza_str(zbiór_gracza: list) -> str: 
-	#wyświetla zbiór liter gracza w formie litera(liczba_punktów)
-	lista = []
-	for litera, punkty in zbiór_gracza:
-		płytka = f'{litera}({punkty})' 
-		lista.append(płytka)
-	return ', '.join(lista)
-
-def litery_gracza(zbiór_gracza) -> list:
-	return [płytka[0].upper() for płytka in zbiór_gracza]
-
-def płytka(litera):
-	for krotka in letterfreq:
-		if krotka[0] == litera.upper():
-			return (litera.upper(), krotka[1])
-	raise Exception('Niepoprawnie podana litera.')
-
-def usuń_ze_zbioru(zbiór_gracza, litera):
-	#usuwa płytkę ze zbioru gracza, w momencie kiedy gracz ją zużywa lub wymienia
-	if płytka(litera) in zbiór_gracza:
-		zbiór_gracza.remove(płytka(litera))
-	else: raise Exception('W zbiorze gracza nie ma podanej litery. ')
-
-def uzupełnij_zbiór(zbiór_gracza):
-	#dodaje płytki do zbioru gracza, aby miał ich 7 (jeśli jest odpowiednia liczba płytek w woreczku)
-	while len(zbiór_gracza) < lettercnt and len(woreczek) > 0:
-		dodaj_do_zbioru(zbiór_gracza)
-
-gracze = {}
-#słownik w postaci: nr gracza: [imię, zbiór liter, wynik]
-for i in range(3):
-	gracze[i] = []
-	gracze[i].append('imię')
-	gracze[i].append([('K', 2), ('O', 1), ('T', 2), ('E', 1), ('K', 2), ('C', 2), ('Z', 1)])
-	gracze[i].append(0)
-
-plansza = {}
-#tworzymy początkową planszę w postaci słownika, gdzie kluczem są współrzędne, a wartością ' ' lub litera
-#dodajemy do słownika, kiedy gracz umieści jakieś słowo - dzięki temu plansza może być nieskończona
-for y in range(3,-4,-1):
-	for x in range(-3,4,1):
-		plansza[x,y] = ' '
-
-def sprawdź_słowo(słowo: str):
-	if słowo.lower() in lista_ze_słownika(args.plik_słownika): return True
-	return False
-
-def wynik(słowo):
-	count = 0
-	if sprawdź_słowo(słowo):
-		for litera in słowo:
-			litera = litera.upper()
-			for i in range(len(letterfreq)):
-				if letterfreq[i][0] == litera:
-					count += letterfreq[i][1]
-					continue
-		return count
-	return -1
-
-def lista_ze_słownika(słownik):
-	return [słowo for słowo in open(słownik).read().split() if len(słowo) > 1]
-
-def litery_gracza(zbiór_gracza) -> list:
-	return [płytka[0].upper() for płytka in zbiór_gracza]
-
 
 '''
 schemat ruchu gracza:
@@ -161,7 +51,7 @@ def słowo_ma_litery(słowo, wymagane_litery):
 	else:
 		return all(litera.lower() in słowo for litera in wymagane_litery)
 
-def utwórz_słowa(zbiór_gracza, litera_z_planszy, długość, słownik = 'slownik.txt', wymagane_litery = ''):
+def utwórz_słowa(zbiór_gracza, litera_z_planszy, długość, słownik = args.plik_słownika, wymagane_litery = ''):
 	#zwraca listę słów, które da się utworzyć ze zbioru gracza, zaczynających się na podaną literę w kolejności od najwyżej punktowanych
 	płytki = litery_gracza(zbiór_gracza)
 	płytki.append(litera_z_planszy)
@@ -290,43 +180,6 @@ def wynik(słowo):
 		return count
 	return -1
 
-def punkty(plansza, dostawka) -> int: 
-#zwraca ile punktów zdobywają litery wstawione na planszę zgodnie z dostawką
-#jeśli dostawka jest nieprawidłowa zwraca −1 lub rzuca wyjątkiem. Plansza nie zmienia się.
-	count = 0
-	if sprawdź_czy_poprawne(dostawka):
-		for lista in dostawka:
-			litera = lista[0].upper()
-			for i in range(len(letterfreq)):
-				if letterfreq[i][0] == litera:
-					count += letterfreq[i][1]
-					continue
-		return count
-	raise Exception('Niepoprawna dostawka.')
-
-def wstaw(plansza, dostawka) -> bool:
-	#wstawia dostawkę na planszę. Zwraca True gdy udało się, False gdy dostawka nie jest prawidłowa.
-
-	#jeśli dostawka była prawidłowa, funkcja sprawdź_czy_poprawne zwraca listę liter do usunięcia ze zbioru gracza
-	potrzebne_litery = sprawdź_czy_poprawne(dostawka)
-	if not potrzebne_litery: return False
-
-	gracze[aktualny_gracz][2] += punkty(plansza, dostawka)
-	for lit in potrzebne_litery:
-		usuń_ze_zbioru(gracze[aktualny_gracz][1], lit)
-	uzupełnij_zbiór(gracze[aktualny_gracz][1])
-
-	#dodajemy dostawkę na planszę
-	for krotka in dostawka:
-		litera = krotka[0]
-		współrzędne = krotka[1]
-
-		for klucz in plansza:
-			if klucz == współrzędne:
-					plansza[klucz] = litera
-					continue #można spróbować z break
-	return True
-
 print(utwórz_słowa([('N', 1), ('A', 1), ('Ł', 3), ('E', 1), ('Y', 2), ('G', 3), ('L', 2)], 'b', 10, 'slownik.txt'))
 
 '''
@@ -409,23 +262,27 @@ def znajdź_dostawki_dół(pole, kopia_planszy, count = 1) -> list:
 
 print(znajdź_dostawki_dół((0,0), copy.deepcopy(plansza)))
 
-opcje = []
-for pole in plansza:
-	if plansza[pole] != ' ':
-		opcje.append(znajdź_dostawki_prawo(pole, copy.deepcopy(plansza)))
-		opcje.append(znajdź_dostawki_góra(pole, copy.deepcopy(plansza)))
-		opcje.append(znajdź_dostawki_dół(pole, copy.deepcopy(plansza)))
-print(opcje)
+def znajdź_dostawkę(aktualny_gracz):
+	global plansza, gracze
 
-lista_słów_ze_współrzędnymi =[]
-#otrzymujemy listę list w postaci [(słowo, punkty), współrzędne, kierunek]
-for lista in opcje:
-	if lista[2] > 1:
-		słowa = utwórz_słowa(gracze[aktualny_gracz][1], lista[1], lista[2])
-		print(słowa)
-		if len(słowa) > 0:
-			lista_słów_ze_współrzędnymi.append([słowa[0], lista[0], lista[3]])
+	opcje = []
+	for pole in plansza: 
+		if plansza[pole][0] != ' ':
+			opcje.append(znajdź_dostawki_prawo(pole, copy.deepcopy(plansza)))
+			opcje.append(znajdź_dostawki_góra(pole, copy.deepcopy(plansza)))
+			opcje.append(znajdź_dostawki_dół(pole, copy.deepcopy(plansza)))
+		print(opcje)
 
-print(lista_słów_ze_współrzędnymi)
+	lista_słów_ze_współrzędnymi =[]
+	#otrzymujemy listę list w postaci [(słowo, punkty), współrzędne, kierunek]
+	for lista in opcje:
+		if lista[2] > 1:
+			słowa = utwórz_słowa(gracze[aktualny_gracz][1], lista[1], lista[2])
+			print(słowa)
+			if len(słowa) > 0:
+				lista_słów_ze_współrzędnymi.append([słowa[0], lista[0], lista[3]])
 
-print(sorted(lista_słów_ze_współrzędnymi, key = lambda x: x[0][1], reverse = True))
+	lista_słów_ze_współrzędnymi = sorted(lista_słów_ze_współrzędnymi, key = lambda x: x[0][1], reverse = True)
+	if lista_słów_ze_współrzędnymi:
+		return lista_słów_ze_współrzędnymi[0]
+	return False
