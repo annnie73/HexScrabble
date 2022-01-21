@@ -575,8 +575,9 @@ def wstaw(dostawka) -> bool:
 
 	global plansza
 	#jeśli dostawka była prawidłowa, funkcja sprawdź_czy_poprawne zwraca listę liter do usunięcia ze zbioru gracza
-	if not sprawdź_czy_poprawne(dostawka): return False
-	lista_słów, potrzebne_litery = sprawdź_czy_poprawne(dostawka)
+	dostawka_spr = sprawdź_czy_poprawne(dostawka)
+	if not dostawka_spr: return False
+	lista_słów, potrzebne_litery = dostawka_spr
 
 	gracze[aktualny_gracz][2] += punkty(plansza, dostawka)
 	for lit in potrzebne_litery:
