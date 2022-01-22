@@ -6,7 +6,6 @@ from sys import exit
 #inicjalizacja biblioteki pygame, czcionek i outline'u planszy
 pygame.init()
 screen = pygame.display.set_mode((1500, 800), pygame.RESIZABLE)
-#screen.fill((245, 222, 179))
 pygame.display.set_caption('Hex Scrabble')
 zegar = pygame.time.Clock()
 
@@ -71,6 +70,7 @@ def inicjalizacja_gry():
 	global wymiana, wymiana_rect, heksagon, heksagon_1_rect, heksagon_2, heksagon_2_rect
 	global heksagon_3, heksagon_3_rect, litery_woreczek, wynik_gracza
 
+	
 	screen.blit(tło, (0,0))
 	screen.blit(nazwa, (1030, 40))
 	screen.blit(runda, (880, 110))
