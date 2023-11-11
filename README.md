@@ -1,0 +1,12 @@
+# HexScrabble
+
+## Uruchamianie programu i zasady gry
+Do uruchomienia programu potrzebna jest wersja Pythona 3.10. Program należy uruchamiać w terminalu, podawszy ścieżkę do katalogu projekt_scrabble, w którym znajdują się wszystkie potrzebne pliki, a następnie wpisanie komendy python3 hexscrabble.py, wraz z odpowiednimi argumentami: -s liczba graczy sztucznych (jeśli nie zostanie podany, przyjęte jest, że grają tylko gracze realni), -S nazwaplikusłownika – bez podania go, domyślnie staje się nim plik ‘slownik.txt’ z bieżącego katalogu, -c plikcnf, określający plik konfiguracyjny, zawierający informacje o liczbie liter posiadanych przez graczy i ogólnej puli liter, domyślnie jest to hexscrabble.cnf z bieżącego katalogu, a następnie nazw graczy realnych, oddzielonych spacjami. Minimalna liczba graczy to 2, inaczej program podniesie wyjątek. Przykładowe poprawne uruchomienie programu dla dwóch graczy sztucznych i gracza realnego Jola:
+Następnie wyświetlone zostanie okienko, w którym wyświetlana jest gra:
+
+`python3 hexscrabble.py -s2 Jola`
+
+Słowa wpisuje się na planszę poprzez kliknięcie myszką w odpowiedni sześciokąt i wpisanie litery, a następnie, bądź za pomocą strzałek, bądź poprzez naciśnięcie myszką na następny sześciokąt można przejść do kolejnego pola. Po zakończeniu wpisywania słowa, zatwierdza się je przyciskiem enter. Jeśli wyraz będzie niepoprawny, źle dostawiony lub niemożliwy do ułożenia z posiadanych przez gracza liter, zostanie wyświetlony odpowiedni komunikat i gracz będzie miał jeszcze dwie dodatkowe szanse ruchu – w każdym podejściu jest dla niego dostępna zarówno opcja ułożenia słowa, jak i wymiany liter, mającej miejsce po naciśnięciu myszką przycisku “Wymiana”. Jeśli gracz, wybierze tę opcję, może następnie wybrać za pomocą myszki litery, które chce wymienić – tutaj nie ma już miejsca na błąd – zarówno po wybraniu opcji wymiany, jak i kliknięciu na odpowiednie litery, nie można już tego cofnąć. Wymianę także zatwierdza się przyciskiem enter.
+  
+Po zakończeniu ruchu, wyświetlony zostaje uaktualniony zbiór liter gracza, aby mógł on myśleć nad możliwymi do ułożenia słowami w trakcie ruchu innych graczy, a także punkty, które dotychczas udało mu się zdobyć.
+Gra kończy się w momencie wyczerpania wszystkich liter z puli – o ich aktualnej liczbie użytkownik jest informowany przez w każdym momencie gry, aby mógł w miarę możliwości rozplanować swoje posunięcia. Po zakończeniu rozgrywki, wyświetlana jest informacja o zwycięzcy oraz o liczbie zdobytych przez niego punktów.
